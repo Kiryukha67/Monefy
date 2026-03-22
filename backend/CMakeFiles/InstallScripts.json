@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Monefy/backend/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
