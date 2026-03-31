@@ -28,189 +28,167 @@ Monefy — це локальний веб-застосунок для персо
 * легко масштабувати або змінювати інтерфейс без втручання в ядро системи.
 
 ### Загальна схема взаємодії
-```text
-[ UI (HTML/CSS/JS) ]
-        ↓ (HTTP REST API: GET, POST)
-[ C++ Server (Crow) ]
-        ↓
-[ Local Database ]
+    [ UI (HTML/CSS/JS) ]
+            ↓ (HTTP REST API: GET, POST)
+    [ C++ Server (Crow) ]
+            ↓
+    [ Local Database ]
 
-🫂 Цільова аудиторія
+---
 
-    👨‍💼 фізичні особи (які ведуть особистий фінансовий облік).
+## 🫂 Цільова аудиторія
+* 👨‍💼 **фізичні особи** (які ведуть особистий фінансовий облік).
+* 👨‍👩‍👧‍👦 **сім'ї** (для контролю спільного бюджету на різних рахунках).
+* 💻 **фрілансери** (для базового трекінгу доходів від різних проєктів).
 
-    👨‍👩‍👧‍👦 сім'ї (для контролю спільного бюджету на різних рахунках).
+---
 
-    💻 фрілансери (для базового трекінгу доходів від різних проєктів).
+## 🎯 Основні сценарії використання (Use Cases)
 
-🎯 Основні сценарії використання (Use Cases)
-1. 🚀 Швидке додавання витрати
-
+### 1. 🚀 Швидке додавання витрати
 Користувач відкриває застосунок → вводить суму → обирає категорію (наприклад, "Їжа") → натискає "Зберегти". Баланс оновлюється миттєво.
-2. 📊 Аналіз витрат
 
+### 2. 📊 Аналіз витрат
 Користувач переглядає головний дашборд (Dashboard), де всі витрати за місяць автоматично групуються та відображаються на кольоровій діаграмі (pie chart) у відсотках.
-3. 🗂 Організація бюджету
 
+### 3. 🗂 Організація бюджету
 Користувач створює різні рахунки (Готівка, Картка, Депозит) і відстежує залишок коштів на кожному з них окремо.
-🚀 Quick Start (Швидкий старт)
-📦 Вимоги
 
-    C++ Compiler (GCC / Clang / MSVC)
+---
 
-    CMake
+## 🚀 Quick Start (Швидкий старт)
 
-    C++ фреймворк Crow
+### 📦 Вимоги
+* C++ Compiler (GCC / Clang / MSVC)
+* CMake
+* C++ фреймворк Crow
+* Сучасний веб-браузер
 
-    Сучасний веб-браузер
+### 🔧 Збірка Backend (C++)
+    cd backend
+    cmake .
+    cmake --build .
+    ./monefy_server
 
-🔧 Збірка Backend (C++)
-Bash
+### ⚡ Запуск Frontend
+Відкрийте файл `index.html` з папки `frontend` у вашому браузері або скористайтеся локальним сервером (наприклад, Live Server у VSCode).
 
-cd backend
-cmake .
-cmake --build .
-./monefy_server
+> **🧠 Що відбувається при запуску:**
+> 1. С++ сервер стартує локально (наприклад, на порту 8080) та очікує HTTP-запити.
+> 2. Браузер завантажує UI (HTML/CSS) та ініціалізує JavaScript.
+> 3. JS робить GET запит до C++ API для отримання поточного балансу та історії транзакцій.
+> 4. Дані відображаються на екрані, генерується кругова діаграма (через Chart.js).
 
-⚡ Запуск Frontend
+---
 
-Відкрийте файл index.html з папки frontend у вашому браузері або скористайтеся локальним сервером (наприклад, Live Server у VSCode).
+## 📁 Структура проєкту (Project Structure)
+    /monefy-project
+    │
+    ├── /backend               # C++ Core & REST API
+    │   ├── controllers/       # Обробка HTTP запитів (TransactionController)
+    │   ├── models/            # Бізнес-сутності (Transaction, Category, Account)
+    │   ├── main.cpp           # Точка входу сервера
+    │   └── CMakeLists.txt
+    │
+    ├── /frontend              # Web UI
+    │   ├── index.html         # Головна сторінка (Dashboard)
+    │   ├── style.css          # Стилі інтерфейсу
+    │   └── app.js             # Логіка взаємодії з API та відмальовування
+    │
+    └── /database              # Локальне сховище (JSON файли або SQLite БД)
 
-    🧠 Що відбувається при запуску:
+---
 
-        С++ сервер стартує локально (наприклад, на порту 8080) та очікує HTTP-запити.
+## 🛠️ Технології (Technologies)
+* **C++ (Crow Microframework)** – core logic & REST API
+* **HTML5 / CSS3** – розмітка та стилізація
+* **Vanilla JavaScript** – логіка фронтенду
+* **Chart.js** – візуалізація кругових діаграм
 
-        Браузер завантажує UI (HTML/CSS) та ініціалізує JavaScript.
+---
 
-        JS робить GET запит до C++ API для отримання поточного балансу та історії транзакцій.
+## 🧩 Ролі компонентів
 
-        Дані відображаються на екрані, генерується кругова діаграма (через Chart.js).
+> **🟦 Backend (C++)**
+> * валідація вхідних даних (сум, дат);
+> * розрахунок загального балансу;
+> * збереження та отримання даних з БД (CRUD операції).
 
-📁 Структура проєкту (Project Structure)
-Plaintext
+> **🟩 Frontend (JS/HTML)**
+> * збір даних з форм введення;
+> * відправка запитів на сервер;
+> * динамічне оновлення інтерфейсу та діаграм без перезавантаження сторінки.
 
-/monefy-project
-│
-├── /backend               # C++ Core & REST API
-│   ├── controllers/       # Обробка HTTP запитів (TransactionController)
-│   ├── models/            # Бізнес-сутності (Transaction, Category, Account)
-│   ├── main.cpp           # Точка входу сервера
-│   └── CMakeLists.txt
-│
-├── /frontend              # Web UI
-│   ├── index.html         # Головна сторінка (Dashboard)
-│   ├── style.css          # Стилі інтерфейсу
-│   └── app.js             # Логіка взаємодії з API та відмальовування
-│
-└── /database              # Локальне сховище (JSON файли або SQLite БД)
+---
 
-🛠️ Технології (Technologies)
+## 📊 Моделі даних (Data Models)
 
-    C++ (Crow Microframework) – core logic & REST API
-
-    HTML5 / CSS3 – розмітка та стилізація
-
-    Vanilla JavaScript – логіка фронтенду
-
-    Chart.js – візуалізація кругових діаграм
-
-🧩 Ролі компонентів
-
-    🟦 Backend (C++)
-
-        валідація вхідних даних (сум, дат);
-
-        розрахунок загального балансу;
-
-        збереження та отримання даних з БД (CRUD операції).
-
-    🟩 Frontend (JS/HTML)
-
-        збір даних з форм введення;
-
-        відправка запитів на сервер;
-
-        динамічне оновлення інтерфейсу та діаграм без перезавантаження сторінки.
-
-📊 Моделі даних (Data Models)
-User
-
+### **User**
 Користувач застосунку. У поточній версії застосунок передбачає одного локального користувача, але архітектура підтримує масштабування.
-JSON
 
-{
-  "id": "int",
-  "name": "string",
-  "email": "string",
-  "passwordHash": "string",
-  "createdAt": "time"
-}
+    {
+      "id": "int",
+      "name": "string",
+      "email": "string",
+      "passwordHash": "string",
+      "createdAt": "time"
+    }
 
-Transaction
-
+### **Transaction**
 Описує фінансову операцію. Кожна транзакція обов'язково прив'язана до конкретного рахунку та категорії.
-JSON
 
-{
-  "id": "int",
-  "amount": "float",
-  "type": "string", // "income" or "expense"
-  "date": "time",
-  "userId": "int",
-  "categoryId": "int",
-  "accountId": "int",
-  "comment": "string"
-}
+    {
+      "id": "int",
+      "amount": "float",
+      "type": "string", // "income" or "expense"
+      "date": "time",
+      "userId": "int",
+      "categoryId": "int",
+      "accountId": "int",
+      "comment": "string"
+    }
 
-Category
-
+### **Category**
 Категорія використовується для групування транзакцій. Приклади: Їжа, Транспорт, Розваги.
-JSON
 
-{
-  "id": "int",
-  "name": "string",
-  "type": "string", // "income" or "expense"
-  "color": "string", // hex code, e.g., "#FF5733"
-  "icon": "string"
-}
+    {
+      "id": "int",
+      "name": "string",
+      "type": "string", // "income" or "expense"
+      "color": "string", // hex code, e.g., "#FF5733"
+      "icon": "string"
+    }
 
-Account
-
+### **Account**
 Рахунок, на якому зберігаються кошти. Дозволяє розділити загальний капітал.
-JSON
 
-{
-  "id": "int",
-  "name": "string",
-  "type": "string", // "cash", "card", "deposit"
-  "balance": "float",
-  "userId": "int",
-  "currencyId": "int"
-}
+    {
+      "id": "int",
+      "name": "string",
+      "type": "string", // "cash", "card", "deposit"
+      "balance": "float",
+      "userId": "int",
+      "currencyId": "int"
+    }
 
-Currency
-
+### **Currency**
 Валюта, яка використовується для розрахунків і відображення балансу.
-JSON
 
-{
-  "id": "int",
-  "code": "string", // "UAH", "USD", "EUR"
-  "exchangeRate": "float"
-}
+    {
+      "id": "int",
+      "code": "string", // "UAH", "USD", "EUR"
+      "exchangeRate": "float"
+    }
 
-Відносини (Relationships)
-Plaintext
-
-User
- ├── Account
- ├── Category
- └── Transaction
-
-Transaction
- ├── Category (many-to-one)
- └── Account (many-to-one)
-
-Account
- └── Currency (many-to-one)
+### Відносини (Relationships)
+    User
+     ├── Account
+     ├── Category
+     └── Transaction
+    
+    Transaction
+     ├── Category (many-to-one)
+     └── Account (many-to-one)
+    
+    Account
+     └── Currency (many-to-one)
