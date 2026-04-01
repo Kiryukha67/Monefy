@@ -1,41 +1,54 @@
-# Prerequisites
-*.d
+# ----------------------------------------------------------------------
+# 1. CMake & Build folders (Тут зберігається весь мусор від компіляції)
+# ----------------------------------------------------------------------
+build/
+out/
+bin/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CMakeScripts/
+Testing/
+install_manifest.txt
+compile_commands.json
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# ----------------------------------------------------------------------
+# 2. Виконавчі файли та бібліотеки Windows / C++
+# ----------------------------------------------------------------------
+*.exe
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
+*.o
 *.a
 *.lib
+*.dll
+*.so
+*.dylib
+*.pdb
+*.ilk
+*.exp
 
-# Executables
-*.exe
-*.out
-*.app
+# ----------------------------------------------------------------------
+# 3. Локальні файли баз даних та логів (щоб не пушити дані на GitHub)
+# ----------------------------------------------------------------------
+*.log
+*.dat
+*.db
+*.sqlite
+*.sqlite3
 
-# debug information files
-*.dwo
+# ----------------------------------------------------------------------
+# 4. Налаштування редакторів коду та ОС
+# ----------------------------------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.user
+*.sln
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------------------------------------
+# 5. Залежності, завантажені через FetchContent (Crow, Asio)
+# ----------------------------------------------------------------------
+_deps/

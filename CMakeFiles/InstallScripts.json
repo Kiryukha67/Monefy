@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"C:/Monefy/cmake_install.cmake",
-		"C:/Monefy/_deps/crow-build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
