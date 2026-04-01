@@ -1,3 +1,0 @@
-C:/Monefy/backend/CMakeFiles/monefy_server.dir
-C:/Monefy/backend/CMakeFiles/edit_cache.dir
-C:/Monefy/backend/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,3 @@
+C:/Monefy/backend/_deps/asio-subbuild/CMakeFiles/asio-populate.dir
+C:/Monefy/backend/_deps/asio-subbuild/CMakeFiles/edit_cache.dir
+C:/Monefy/backend/_deps/asio-subbuild/CMakeFiles/rebuild_cache.dir

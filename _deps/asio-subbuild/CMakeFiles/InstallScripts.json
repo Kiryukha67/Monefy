@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Monefy/_deps/asio-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
