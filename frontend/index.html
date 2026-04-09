@@ -276,10 +276,24 @@
                 
                 renderBalance(data.name, data.balance);
                 
-                // ТУТ В МАЙБУТНЬОМУ БУДЕ: await fetchAnalytics() та await fetchHistory()
-                // Поки їх немає у main.cpp, відмальовуємо красиві мокові дані:
-                renderChart(MOCK_DATA.analytics.labels, MOCK_DATA.analytics.data);
-                renderTransactions(MOCK_DATA.transactions);
+                // Завантажуємо реальну аналітику
+                const resAnalytics = await fetch(`${API_BASE}/analytics`);
+                if (resAnalytics.ok) {
+                    const analyticsData = await resAnalytics.json();
+                    // Якщо витрат ще немає, показуємо порожній графік
+                    if (analyticsData.labels.length === 0) {
+                         renderChart(['Немає витрат'], [1]);
+                    } else {
+                         renderChart(analyticsData.labels, analyticsData.data);
+                    }
+                }
+
+                // Завантажуємо реальну історію транзакцій
+                const resTx = await fetch(`${API_BASE}/transactions`);
+                if (resTx.ok) {
+                    const txData = await resTx.json();
+                    renderTransactions(txData);
+                }
                 
             } catch (error) {
                 console.log("Бекенд недоступний, завантажуємо тестові дані UI/UX...");
@@ -398,7 +412,8 @@
                     alert("Помилка: " + err);
                 }
             } catch (error) {
-                alert("Не вдалося з'єднатися з сервером. Перевірте, чи запущено C++ бекенд.");
+                console.error("Деталі мережевої помилки:", error);
+                alert("Помилка мережі: " + error.message + "\n\nНатисніть F12 на клавіатурі і перевірте вкладку Console (Консоль) для деталей.");
             }
         }
     </script>
