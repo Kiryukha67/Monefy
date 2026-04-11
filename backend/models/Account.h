@@ -2,7 +2,8 @@
 
 struct Account {
     int id;
-    char name[50];
+    char name[64];
     double balance;
-    int userId;
+    int currencyId;
+    char icon[16]; // <--- Додано поле для емодзі/іконки
 };

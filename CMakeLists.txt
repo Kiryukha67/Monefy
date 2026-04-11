@@ -5,6 +5,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Прибираємо попередження про DOWNLOAD_EXTRACT_TIMESTAMP
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
 include(FetchContent)
 
 # --- 1. ВРУЧНУ ЗАВАНТАЖУЄМО ASIO ---
@@ -29,7 +34,6 @@ FetchContent_MakeAvailable(Crow)
 # --- 3. ЗБИРАЄМО ТВОЮ ПРОГРАМУ (вказуємо, що файли лежать у backend/) ---
 add_executable(monefy_server 
     backend/main.cpp
-    backend/storage/UserStorage.cpp
     backend/storage/CategoryStorage.cpp
     backend/storage/AccountStorage.cpp
     backend/storage/TransactionStorage.cpp

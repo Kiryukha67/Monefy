@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monefy Web | Історія операцій</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* --- Панель фільтрів (Sticky) --- */
+        .filter-panel {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-card);
+            padding: 10px 20px 20px;
+            border-bottom-left-radius: var(--radius-main);
+            border-bottom-right-radius: var(--radius-main);
+            box-shadow: var(--shadow-sticky);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        .filter-select {
+            flex: 1;
+            appearance: none;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 14px;
+            padding-right: 28px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .filter-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        /* --- Основний контент (Список) --- */
+        .content { 
+            padding: 20px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px;
+        }
+
+        /* Група транзакцій (за датою) */
+        .tx-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tx-date-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-left: 8px;
+            text-transform: capitalize;
+        }
+        .tx-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-main);
+            box-shadow: var(--shadow-card);
+            padding: 0 16px;
+        }
+
+        /* Елемент транзакції */
+        .tx-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .tx-item:last-child {
+            border-bottom: none;
+        }
+        .tx-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .tx-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+        .tx-details { display: flex; flex-direction: column; gap: 4px; }
+        .tx-cat { font-size: 15px; font-weight: 600; color: var(--text-main); }
+        .tx-acc { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        
+        .tx-amount { font-weight: 700; font-size: 16px; }
+        .tx-amount.income { color: var(--color-income); }
+        .tx-amount.expense { color: var(--text-main); } /* Витрати робимо нейтральними або червоними, за бажанням можна var(--color-expense) */
+
+        .tx-delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+        .tx-delete-btn:hover { color: var(--color-expense); }
+
+        /* Стан "Немає даних" */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            animation: fadeIn 0.3s;
+        }
+        .empty-state span { font-size: 40px; display: block; margin-bottom: 10px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ==========================================================
+           АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
+           ========================================================== */
+        @media (min-width: 800px) {
+            .app-container {
+                max-width: 960px;
+                grid-template-columns: 90px 250px 1fr; /* Меню, Фільтри, Історія */
+                grid-template-rows: 80px 1fr;
+            }
+            .filter-panel {
+                grid-column: 2 / 3;
+                grid-row: 2 / 3;
+                position: static;
+                flex-direction: column;
+                padding: 30px 20px;
+                box-shadow: none;
+                border-right: 1px solid #e2e8f0;
+                border-radius: 0;
+                gap: 20px;
+            }
+            .content {
+                grid-column: 3 / 4;
+                grid-row: 2 / 3;
+                padding: 30px 40px;
+                overflow-y: auto;
+                max-height: calc(100vh - 160px);
+            }
+
+            /* Hover-ефект для транзакцій на ПК */
+            .tx-item, .tx-item:last-child {
+                transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+                border-radius: 12px;
+                padding: 12px 16px; /* Уніфікуємо відступи для ПК */
+                margin: 0 -16px;
+            }
+            .tx-item:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.1), 0 6px 8px -6px rgba(0, 0, 0, 0.1);
+                background-color: var(--bg-card);
+                border-bottom-color: transparent;
+                z-index: 2;
+                position: relative;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Шапка -->
+        <header class="header">
+            <a href="index.html" class="back-btn">⬅ Назад</a>
+            <div class="title">Історія операцій</div>
+            <div class="spacer"></div>
+        </header>
+
+        <!-- Панель фільтрів (Sticky) -->
+        <div class="filter-panel">
+            <select id="filter-period" class="filter-select" onchange="applyFilters()">
+                <option value="all">За весь час</option>
+                <option value="today">Сьогодні</option>
+                <option value="week">Цей тиждень</option>
+                <option value="month">Цей місяць</option>
+            </select>
+            
+            <select id="filter-account" class="filter-select" onchange="applyFilters()">
+                <option value="all">Всі рахунки</option>
+                <option value="Картка">Картка</option>
+                <option value="Готівка">Готівка</option>
+            </select>
+            
+            <select id="filter-category" class="filter-select" onchange="applyFilters()">
+                <option value="all">Всі категорії</option>
+                <option value="Їжа">Їжа</option>
+                <option value="Транспорт">Транспорт</option>
+                <option value="Супермаркети">Супермаркети</option>
+                <option value="Зарплата">Зарплата</option>
+                <option value="Розваги">Розваги</option>
+            </select>
+        </div>
+
+        <!-- Список транзакцій -->
+        <div class="content" id="transactions-container">
+            <!-- Згенерується через JS -->
+        </div>
+
+        <!-- Нижня навігація -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Головна</span>
+            </a>
+            <a href="history.html" class="nav-item active">
+                <span class="nav-icon">📜</span>
+                <span>Історія</span>
+            </a>
+            <a href="accounts.html" class="nav-item">
+                <span class="nav-icon">💳</span>
+                <span>Рахунки</span>
+            </a>
+            <a href="categories.html" class="nav-item">
+                <span class="nav-icon">🗂</span>
+                <span>Категорії</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8085/api';
+        
+        // Глобальний масив для зберігання всіх транзакцій з бекенду
+        let allTransactions = [];
+
+        // --- Глобальні функції: Валюта ---
+        function formatCurrency(amountInUAH) {
+            const currency = localStorage.getItem('currency') || 'UAH';
+            let amount = amountInUAH;
+            let symbol = '₴';
+
+            if (currency === 'USD') { amount = amountInUAH / 40.0; symbol = '$'; }
+            else if (currency === 'EUR') { amount = amountInUAH / 42.0; symbol = '€'; }
+
+            return amount.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
+        }
+
+        // --- Логіка форматування дати ---
+        function formatDateLabel(dateObj) {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (dateObj.toDateString() === today.toDateString()) return "Сьогодні";
+            if (dateObj.toDateString() === yesterday.toDateString()) return "Вчора";
+
+            // Наприклад: "23 жовтня 2023"
+            return dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // --- Рендер списку транзакцій ---
+        function renderHistory(transactions) {
+            const container = document.getElementById('transactions-container');
+            container.innerHTML = '';
+
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span>🕵️‍♂️</span>
+                        Транзакцій не знайдено<br>за обраними фільтрами
+                    </div>`;
+                return;
+            }
+
+            // Сортування за датою (від новіших до старіших)
+            transactions.sort((a, b) => b.dateObj - a.dateObj);
+
+            // Групування за датою
+            const grouped = {};
+            transactions.forEach(tx => {
+                const label = formatDateLabel(tx.dateObj);
+                if (!grouped[label]) grouped[label] = [];
+                grouped[label].push(tx);
+            });
+
+            // Генерація HTML
+            for (const [dateLabel, txList] of Object.entries(grouped)) {
+                let itemsHtml = '';
+                
+                txList.forEach(tx => {
+                    const isIncome = tx.type === 'income';
+                    const sign = isIncome ? '+' : '-';
+                    const amountClass = isIncome ? 'income' : 'expense';
+                    
+                    // Якщо бекенд не віддає колір у транзакції, призначаємо дефолтний
+                    const txColor = tx.color || (isIncome ? '#10b981' : '#ef4444');
+                    const iconBg = txColor + '33'; // Прозорість 20%
+
+                    // Fallback для назви рахунку (якщо бекенд його поки не повертає у /api/transactions)
+                    const accountName = tx.accountName || 'Основний рахунок';
+
+                    itemsHtml += `
+                        <div class="tx-item">
+                            <div class="tx-left">
+                                <div class="tx-icon" style="background-color: ${iconBg}; color: ${txColor};">
+                                    ${tx.icon || '💸'}
+                                </div>
+                                <div class="tx-details">
+                                    <div class="tx-cat">${tx.categoryName || 'Інше'}</div>
+                                    <div class="tx-acc">${accountName}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <div class="tx-amount ${amountClass}">
+                                    ${sign} ${formatCurrency(tx.amount)}
+                                </div>
+                                <button class="tx-delete-btn" onclick="deleteTransaction(${tx.id})" title="Видалити">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="tx-group">
+                        <div class="tx-date-header">${dateLabel}</div>
+                        <div class="tx-card">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Логіка Фільтрації ---
+        function applyFilters() {
+            const period = document.getElementById('filter-period').value;
+            const account = document.getElementById('filter-account').value;
+            const category = document.getElementById('filter-category').value;
+
+            const now = new Date();
+
+            const filtered = allTransactions.filter(tx => {
+                // 1. Фільтр по рахунку (перевіряємо і по ID, і по Назві для гнучкості)
+                if (account !== 'all' && String(tx.accountId) !== account && tx.accountName !== account) return false;
+                
+                // 2. Фільтр по категорії 
+                if (category !== 'all' && String(tx.categoryId) !== category && tx.categoryName !== category) return false;
+
+                // 3. Фільтр по періоду
+                if (period !== 'all') {
+                    const diffTime = Math.abs(now - tx.dateObj);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (period === 'today' && tx.dateObj.toDateString() !== now.toDateString()) return false;
+                    if (period === 'week' && diffDays > 7) return false;
+                    if (period === 'month' && diffDays > 30) return false;
+                }
+
+                return true;
+            });
+
+            renderHistory(filtered);
+        }
+
+        // --- Видалення Транзакції ---
+        async function deleteTransaction(id) {
+            if (!confirm("Ви впевнені, що хочете видалити цю транзакцію? Баланс рахунку буде відновлено.")) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/transaction/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Миттєве оновлення UI (завантажує історію наново)
+                    loadTransactions(); 
+                } else {
+                    const errText = await response.text();
+                    console.error("Помилка від сервера:", errText);
+                    alert("Не вдалося видалити транзакцію.");
+                }
+            } catch (error) {
+                console.error("Помилка видалення транзакції:", error);
+                alert("Помилка мережі: Не вдалося виконати запит.");
+            }
+        }
+
+        // --- Завантаження Фільтрів (Рахунки та Категорії) ---
+        async function loadFilters() {
+            try {
+                const [accRes, catRes] = await Promise.all([
+                    fetch(`${API_BASE}/accounts`),
+                    fetch(`${API_BASE}/categories`)
+                ]);
+
+                if (accRes.ok) {
+                    const accounts = await accRes.json();
+                    const accSelect = document.getElementById('filter-account');
+                    accSelect.innerHTML = '<option value="all">Всі рахунки</option>';
+                    accounts.forEach(acc => {
+                        // Використовуємо назву рахунку як value (оскільки транзакції на бекенді поки не віддають accountId)
+                        accSelect.innerHTML += `<option value="${acc.name}">${acc.name}</option>`;
+                    });
+                }
+
+                if (catRes.ok) {
+                    const categories = await catRes.json();
+                    const catSelect = document.getElementById('filter-category');
+                    catSelect.innerHTML = '<option value="all">Всі категорії</option>';
+                    categories.forEach(cat => {
+                        // Використовуємо назву категорії як value, бо C++ бекенд повертає tx["categoryName"]
+                        catSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error("Помилка завантаження фільтрів:", error);
+            }
+        }
+
+        // --- Завантаження Історії Транзакцій ---
+        async function loadTransactions() {
+            try {
+                const res = await fetch(`${API_BASE}/transactions`);
+                if (!res.ok) throw new Error("Помилка сервера");
+                
+                const data = await res.json();
+                
+                // Зберігаємо в глобальний масив та парсимо дати в об'єкти Date
+                allTransactions = data.map(tx => {
+                    let d = new Date(tx.date);
+                    if (isNaN(d.getTime())) d = new Date(); // Якщо дата некоректна, ставимо поточну
+                    return { ...tx, dateObj: d };
+                });
+
+                // Відмальовуємо всі отримані транзакції
+                renderHistory(allTransactions);
+
+            } catch (error) {
+                console.error("Помилка завантаження історії:", error);
+                document.getElementById('transactions-container').innerHTML = 
+                    '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Не вдалося завантажити історію операцій</p>';
+            }
+        }
+
+        // --- Ініціалізація при завантаженні ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Завантажуємо фільтри і транзакції
+            loadFilters();
+            loadTransactions();
+
+            // 2. Додаємо обробники подій на фільтри
+            document.getElementById('filter-period').addEventListener('change', applyFilters);
+            document.getElementById('filter-account').addEventListener('change', applyFilters);
+            document.getElementById('filter-category').addEventListener('change', applyFilters);
+        });
+    </script>
+</body>
+</html>

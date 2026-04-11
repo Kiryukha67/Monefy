@@ -1,0 +1,171 @@
+/* --- CSS Змінні (Дизайн Система Monefy) --- */
+:root {
+    --bg-body: #1e293b;
+    --bg-app: #f1f5f9;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    
+    --color-primary: #3b82f6;
+    --color-danger: #ef4444;
+    --color-success: #10b981;
+    --color-income: #10b981;
+    --color-expense: #ef4444;
+    
+    --radius-main: 20px;
+    --radius-btn: 14px;
+    --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --shadow-sticky: 0 4px 10px rgba(0, 0, 0, 0.03);
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --- Базові стилі --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--bg-app);
+    min-height: 100vh;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Шапка (Header) --- */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background-color: var(--bg-card);
+    border-bottom-left-radius: var(--radius-main);
+    border-bottom-right-radius: var(--radius-main);
+    box-shadow: var(--shadow-card);
+    z-index: 10;
+}
+.header .logo { font-size: 20px; font-weight: 800; color: var(--color-primary); }
+.header .account-selector {
+    flex-grow: 1; margin: 0 10px; text-overflow: ellipsis; overflow: hidden;
+    background: #e2e8f0; padding: 6px 14px; border-radius: 20px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.header .back-btn { text-decoration: none; color: var(--text-muted); font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+.header .back-btn:hover { color: var(--color-primary); }
+.header .title { font-size: 18px; font-weight: 700; color: var(--text-main); }
+.header .spacer { width: 60px; }
+
+/* --- Плаваюча кнопка дії (FAB) --- */
+.fab {
+    position: absolute; bottom: 90px; right: 24px; width: 60px; height: 60px;
+    background-color: var(--color-primary); color: white; border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; font-size: 32px;
+    font-weight: 300; border: none; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+    cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; z-index: 20;
+}
+.fab:hover { transform: translateY(-3px); box-shadow: 0 14px 25px rgba(59, 130, 246, 0.5); }
+.fab:active { transform: translateY(0); }
+
+/* --- Модальні вікна --- */
+.modal-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100;
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal-content {
+    background: var(--bg-card); border-top-left-radius: 24px; border-top-right-radius: 24px;
+    padding: 24px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { font-size: 20px; font-weight: 700; }
+.btn-close { background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;}
+.form-control {
+    width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px;
+    font-size: 16px; font-family: inherit; background: #f8fafc; color: var(--text-main);
+    outline: none; transition: border-color 0.2s;
+}
+.form-control:focus { border-color: var(--color-primary); background: #fff;}
+.btn-primary { 
+    background-color: var(--color-primary); width: 100%; padding: 16px;
+    border: none; border-radius: var(--radius-btn); color: white;
+    font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;
+    transition: opacity 0.2s;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* --- Нижня навігація --- */
+.bottom-nav {
+    position: fixed; bottom: 0; width: 100%; max-width: 420px; z-index: 100;
+    display: flex; justify-content: space-around;
+    background-color: var(--bg-card); padding: 12px 10px 16px 10px;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05); border-radius: 0 0 var(--radius-main) var(--radius-main);
+}
+.nav-item {
+    text-decoration: none; display: flex; flex-direction: column; align-items: center;
+    gap: 4px; color: var(--text-muted); font-size: 11px; font-weight: 600;
+    transition: color 0.2s, transform 0.1s;
+}
+.nav-item:active { transform: scale(0.95); }
+.nav-item.active, .nav-item:hover { color: var(--color-primary); }
+.nav-icon { font-size: 22px; }
+
+/* Приховуємо скролбар для мобільних */
+::-webkit-scrollbar { width: 0px; }
+
+/* ==========================================================
+   Спільна АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
+   ========================================================== */
+@media (min-width: 800px) {
+    .app-container {
+        margin: 40px auto; min-height: calc(100vh - 80px);
+        border-radius: 24px; display: grid; overflow: hidden;
+    }
+    .header { border-radius: 0; box-shadow: none; border-bottom: 1px solid #e2e8f0; }
+    .bottom-nav {
+        position: static; width: 80px; height: 100vh;
+        flex-direction: column; justify-content: flex-start;
+        padding: 40px 0; gap: 40px; border-radius: 0;
+        box-shadow: 2px 0 15px rgba(0, 0, 0, 0.03);
+        grid-column: 1 / 2; grid-row: 1 / 4; /* Для підтримки макетів Grid на сторінках */
+        margin: 0; z-index: 20;
+    }
+
+    /* Ефекти наведення для пунктів сайдбару на ПК */
+    .nav-item {
+        width: 64px;
+        height: 64px;
+        justify-content: center;
+        border-radius: 16px;
+        margin: 0 auto; /* Центруємо по горизонталі в сайдбарі */
+        transition: color 0.2s, transform 0.1s, background-color 0.2s;
+    }
+    .nav-item:hover {
+        background-color: var(--bg-app); /* Сіруватий фон при наведенні */
+    }
+    .nav-item.active {
+        background-color: rgba(59, 130, 246, 0.1); /* Легкий синій фон для активного пункту */
+    }
+
+    /* Спільний кастомний скролбар ПК */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+}

@@ -20,8 +20,14 @@ private:
     int generateNewTransactionId();
 
 public:
+    // Видалення транзакції та відкат балансу
+    bool deleteTransaction(int id);
+
     // Головна функція додавання транзакції
     bool addTransaction(double amount, bool isIncome, const char* date, int categoryId, int accountId);
+    
+    // Логіка переказу коштів між рахунками
+    bool transferFunds(int fromAccountId, int toAccountId, double amount, const char* date);
     
     // Отримання аналітики (суми, згруповані по категоріях)
     void getAnalytics(bool isIncome, CategoryTotal* outTotals, int& count, int maxCount);

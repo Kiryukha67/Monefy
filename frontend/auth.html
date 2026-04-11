@@ -2,34 +2,29 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monefy - Авторизація</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e293b;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .auth-card {
-            background: white;
+        /* Специфічні стилі для сторінки авторизації */
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--bg-card);
+            border-radius: var(--radius-main);
+            box-shadow: var(--shadow-card);
             padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            width: 320px;
-            position: relative;
-            overflow: hidden;
+            margin: auto;
+            align-items: center;
         }
         .logo {
             text-align: center;
-            color: #0f172a;
+            color: var(--text-main);
             font-size: 24px;
-            font-weight: bold;
+            font-weight: 800;
             margin-bottom: 20px;
         }
+        .logo span { color: var(--color-primary); }
         .tabs {
             display: flex;
             margin-bottom: 20px;
@@ -38,88 +33,41 @@
         .tab {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
-            font-weight: bold;
-            color: #64748b;
+            font-weight: 700;
+            color: var(--text-muted);
             transition: 0.3s;
         }
         .tab.active {
-            color: #3b82f6;
-            border-bottom: 2px solid #3b82f6;
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-primary);
             margin-bottom: -2px;
         }
         .form-container {
-            display: none; /* Приховуємо форми за замовчуванням */
+            display: none;
         }
         .form-container.active {
-            display: block; /* Показуємо тільки активну */
-            animation: fadeIn 0.3s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-group label {
             display: block;
-            font-size: 13px;
-            color: #475569;
-            margin-bottom: 5px;
-            font-weight: bold;
+            animation: fadeIn 0.4s ease;
         }
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-            outline: none;
-            transition: 0.2s;
-        }
-        .input-group input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-top: 10px;
-        }
-        .btn:hover { background-color: #2563eb; }
-        .btn:active { transform: scale(0.98); }
         .error-msg {
-            color: #ef4444;
+            color: var(--color-danger);
             font-size: 13px;
             text-align: center;
             margin-top: 10px;
             min-height: 18px;
         }
-        .forgot-pass {
-            display: block;
-            text-align: right;
-            font-size: 12px;
-            color: #3b82f6;
-            text-decoration: none;
-            margin-top: 5px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div class="auth-card">
-        <div class="logo">💰 Monefy Web</div>
+    <div class="auth-container">
+        <div class="logo">Monefy <span>Web</span></div>
         
         <div class="tabs">
             <div class="tab active" onclick="switchTab('login')">Вхід</div>
@@ -127,38 +75,35 @@
         </div>
 
         <div id="login-form" class="form-container active">
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="login-email" placeholder="mail@example.com">
+            <div class="form-group">
+                <label>Логін (Username)</label>
+                <input type="text" id="login-username" class="form-control" placeholder="Введіть логін">
             </div>
-            <div class="input-group">
+            <div class="form-group">
                 <label>Пароль</label>
-                <input type="password" id="login-password" placeholder="••••••••">
-                <a href="#" class="forgot-pass" onclick="alert('Функція відновлення пароля буде додана пізніше!')">Забули пароль?</a>
+                <input type="password" id="login-password" class="form-control" placeholder="••••••••">
             </div>
-            <button class="btn" onclick="login()">Увійти</button>
+            <button class="btn-primary" onclick="authenticate('login')">Увійти</button>
             <div class="error-msg" id="login-error"></div>
         </div>
 
         <div id="register-form" class="form-container">
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" id="reg-email" placeholder="mail@example.com">
+            <div class="form-group">
+                <label>Логін (Username)</label>
+                <input type="text" id="reg-username" class="form-control" placeholder="Придумайте логін">
             </div>
-            <div class="input-group">
+            <div class="form-group">
                 <label>Пароль</label>
-                <input type="password" id="reg-password" placeholder="Мінімум 6 символів">
+                <input type="password" id="reg-password" class="form-control" placeholder="••••••••">
             </div>
-            <div class="input-group">
-                <label>Підтвердження пароля</label>
-                <input type="password" id="reg-password-confirm" placeholder="Повторіть пароль">
-            </div>
-            <button class="btn" onclick="register()">Створити акаунт</button>
+            <button class="btn-primary" style="background-color: var(--color-income);" onclick="authenticate('register')">Створити акаунт</button>
             <div class="error-msg" id="reg-error"></div>
         </div>
     </div>
 
     <script>
+        const API_BASE = 'http://localhost:8085/api';
+
         // Перемикання вкладок
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -176,65 +121,40 @@
             document.getElementById('reg-error').innerText = '';
         }
 
-        // Логіка ВХОДУ
-        function login() {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            const errorDiv = document.getElementById('login-error');
+        // Універсальна функція для Логіну та Реєстрації
+        async function authenticate(action) {
+            const isLogin = action === 'login';
+            const prefix = isLogin ? 'login' : 'reg';
+            
+            const username = document.getElementById(`${prefix}-username`).value.trim();
+            const password = document.getElementById(`${prefix}-password`).value.trim();
+            const errorDiv = document.getElementById(`${prefix}-error`);
 
-            if (!email || !pass) {
+            if (!username || !password) {
                 errorDiv.innerText = "Заповніть всі поля!";
                 return;
             }
 
-            // Відправка на C++ сервер
-            fetch('http://localhost:8085/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, password: pass })
-            })
-            .then(res => {
-                if (res.ok) {
-                    // Якщо сервер сказав ОК - перекидаємо на головну!
-                    window.location.href = 'index.html';
+            try {
+                const response = await fetch(`${API_BASE}/${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // ЗБЕРІГАЄМО ТОКЕН!
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'index.html'; // Редирект на головну
                 } else {
-                    errorDiv.innerText = "Невірний логін або пароль";
+                    const err = await response.text();
+                    errorDiv.innerText = err || "Помилка авторизації";
                 }
-            })
-            .catch(() => errorDiv.innerText = "Помилка з'єднання з сервером!");
-        }
-
-        // Логіка РЕЄСТРАЦІЇ
-        function register() {
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-password').value;
-            const passConfirm = document.getElementById('reg-password-confirm').value;
-            const errorDiv = document.getElementById('reg-error');
-
-            if (!email || !pass || !passConfirm) {
-                errorDiv.innerText = "Заповніть всі поля!";
-                return;
+            } catch (error) {
+                console.error(error);
+                errorDiv.innerText = "Помилка: " + error.message;
             }
-            if (pass !== passConfirm) {
-                errorDiv.innerText = "Паролі не співпадають!";
-                return;
-            }
-
-            // Відправка на C++ сервер
-            fetch('http://localhost:8085/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, password: pass })
-            })
-            .then(res => {
-                if (res.ok) {
-                    alert("Реєстрація успішна! Тепер увійдіть.");
-                    switchTab('login'); // Перекидаємо на вкладку логіну
-                } else {
-                    errorDiv.innerText = "Помилка при реєстрації";
-                }
-            })
-            .catch(() => errorDiv.innerText = "Помилка з'єднання з сервером!");
         }
     </script>
 </body>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monefy Web | Управління категоріями</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Основний контент */
+        .content { 
+            padding: 24px 20px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px;
+            padding-bottom: 100px; /* Місце для FAB */
+        }
+
+        /* --- Картка категорії --- */
+        .category-card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-main);
+            padding: 20px;
+            box-shadow: var(--shadow-card);
+        }
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cat-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .cat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        .cat-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .cat-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            background: #f8fafc;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .action-btn:hover { background: #e2e8f0; }
+
+        /* --- Блок Бюджету (Прогрес-бар) --- */
+        .budget-block { margin-top: 16px; }
+        .progress-bg {
+            width: 100%;
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease-out, background-color 0.3s;
+        }
+        .budget-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .budget-text .danger { color: var(--color-danger); font-weight: 700; }
+
+        /* Сітка Емодзі */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .emoji-item {
+            aspect-ratio: 1;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; background: #f1f5f9; border-radius: 12px;
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+        }
+        .emoji-item.active { background: #eff6ff; border-color: var(--color-primary); transform: scale(1.05); }
+
+        /* Сітка Кольорів */
+        .color-grid {
+            display: flex; gap: 12px; flex-wrap: wrap;
+        }
+        .color-item {
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; outline: 2px solid transparent; outline-offset: 2px;
+            transition: transform 0.2s;
+        }
+        .color-item.active { outline-color: var(--color-primary); transform: scale(1.1); }
+
+        /* ==========================================================
+           АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
+           ========================================================== */
+        @media (min-width: 800px) {
+            .app-container {
+                max-width: 900px;
+                grid-template-columns: 90px 1fr; /* 90px для сайдбару, решта для контенту */
+                grid-template-rows: 80px 1fr;    /* 80px для шапки, решта для контенту */
+            }
+            #categories-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+                align-content: start;
+            }
+
+            /* Обмежуємо висоту контенту та вмикаємо скрол */
+            .content {
+                overflow-y: auto;
+                max-height: calc(100vh - 160px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Шапка -->
+        <header class="header">
+            <div class="title">Категорії</div>
+            <div class="spacer"></div>
+        </header>
+
+        <!-- Список категорій -->
+        <div class="content" id="categories-container">
+            <!-- Картки будуть згенеровані через JavaScript -->
+        </div>
+
+        <!-- Плаваюча кнопка дії -->
+        <button class="fab" onclick="openModal()">+</button>
+
+        <!-- Модальне вікно (Нова категорія) -->
+        <div class="modal-overlay" id="category-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Нова категорія</h2>
+                    <button class="btn-close" onclick="closeModal()">×</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тип категорії</label>
+                    <select id="cat-type" class="form-control">
+                        <option value="expense">📉 Витрата</option>
+                        <option value="income">📈 Дохід (Ціль)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Назва категорії</label>
+                    <input type="text" id="cat-name" class="form-control" placeholder="Наприклад: Кав'ярні">
+                </div>
+
+                <div class="form-group">
+                    <label>Іконка (Емодзі)</label>
+                    <div class="emoji-grid" id="emoji-grid">
+                        <div class="emoji-item active">🍔</div>
+                        <div class="emoji-item">🛒</div>
+                        <div class="emoji-item">🚗</div>
+                        <div class="emoji-item">🎮</div>
+                        <div class="emoji-item">☕</div>
+                        <div class="emoji-item">💊</div>
+                        <div class="emoji-item">👕</div>
+                        <div class="emoji-item">✈️</div>
+                        <div class="emoji-item">🏠</div>
+                        <div class="emoji-item">🎁</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Колір</label>
+                    <div class="color-grid" id="color-grid">
+                        <div class="color-item active" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                        <div class="color-item" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                        <div class="color-item" style="background-color: #10b981;" data-color="#10b981"></div>
+                        <div class="color-item" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                        <div class="color-item" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                        <div class="color-item" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="saveCategory()">Зберегти</button>
+            </div>
+        </div>
+
+        <!-- Нижня навігація -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Головна</span>
+            </a>
+            <a href="history.html" class="nav-item">
+                <span class="nav-icon">📜</span>
+                <span>Історія</span>
+            </a>
+            <a href="accounts.html" class="nav-item">
+                <span class="nav-icon">💳</span>
+                <span>Рахунки</span>
+            </a>
+            <a href="categories.html" class="nav-item active">
+                <span class="nav-icon">🗂</span>
+                <span>Категорії</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8085/api';
+        let currentCategories = [];
+        let editingCategoryId = null; // Глобальна змінна для відстеження режиму редагування
+
+        // --- Завантаження категорій з бекенду ---
+        async function fetchCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`);
+                if (!response.ok) throw new Error('Мережева помилка');
+                currentCategories = await response.json();
+                renderCategories();
+            } catch (error) {
+                console.error("Помилка завантаження:", error);
+                document.getElementById('categories-container').innerHTML = 
+                    '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Не вдалося завантажити категорії з сервера</p>';
+            }
+        }
+
+        // --- Рендер списку категорій ---
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+            currentCategories.forEach(cat => {
+                // Конвертуємо HEX колір у формат з прозорістю (додаємо 33 для 20% opacity)
+                const iconBg = cat.color + '33';
+
+                container.innerHTML += `
+                    <div class="category-card">
+                        <div class="cat-header">
+                            <div class="cat-info">
+                                <div class="cat-icon" style="background-color: ${iconBg}; color: ${cat.color};">${cat.icon}</div>
+                                <div class="cat-name">${cat.name}</div>
+                            </div>
+                            <div class="cat-actions">
+                                <button class="action-btn" title="Редагувати" onclick="editCategory(${cat.id})">✏️</button>
+                                <button class="action-btn" title="Видалити" onclick="deleteCategory(${cat.id})">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- Логіка модального вікна ---
+        function openModal() {
+            document.getElementById('category-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('category-modal').classList.remove('active');
+            
+            // Скидаємо режим редагування та заголовок
+            editingCategoryId = null;
+            document.getElementById('modal-title').innerText = 'Нова категорія';
+            
+            // Очищення полів форми
+            document.getElementById('cat-name').value = '';
+            document.getElementById('cat-type').value = 'expense';
+            
+            const limitInput = document.getElementById('cat-limit');
+            if (limitInput) limitInput.value = '';
+            
+            // Скидання вибору емодзі/кольору на перший елемент
+            const emojis = document.querySelectorAll('#emoji-grid .emoji-item');
+            emojis.forEach(el => el.classList.remove('active'));
+            if(emojis.length > 0) emojis[0].classList.add('active');
+
+            const colors = document.querySelectorAll('#color-grid .color-item');
+            colors.forEach(el => el.classList.remove('active'));
+            if(colors.length > 0) colors[0].classList.add('active');
+        }
+
+        // --- Редагування категорії ---
+        function editCategory(id) {
+            const cat = currentCategories.find(c => c.id === id);
+            if (!cat) return;
+
+            editingCategoryId = id; // Встановлюємо ID для редагування
+            document.getElementById('modal-title').innerText = 'Редагувати категорію';
+            
+            // Заповнення полів даними
+            document.getElementById('cat-name').value = cat.name;
+            document.getElementById('cat-type').value = cat.isIncome ? 'income' : 'expense';
+            
+            const limitInput = document.getElementById('cat-limit');
+            if (limitInput) limitInput.value = cat.limit || '';
+
+            // Підсвічування іконки
+            const emojis = document.querySelectorAll('#emoji-grid .emoji-item');
+            emojis.forEach(el => {
+                el.classList.remove('active');
+                if (el.innerText.trim() === cat.icon) el.classList.add('active');
+            });
+
+            // Підсвічування кольору
+            const colors = document.querySelectorAll('#color-grid .color-item');
+            colors.forEach(el => {
+                el.classList.remove('active');
+                if (el.getAttribute('data-color') === cat.color) el.classList.add('active');
+            });
+
+            openModal();
+        }
+
+        // --- Видалення категорії ---
+        async function deleteCategory(id) {
+            if (!confirm("Ви впевнені, що хочете видалити цю категорію?")) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/category/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    fetchCategories(); // Оновлюємо список
+                } else {
+                    const err = await response.text();
+                    alert("Помилка видалення: " + err);
+                }
+            } catch (error) {
+                console.error("Помилка:", error);
+                alert("Не вдалося з'єднатися з сервером.");
+            }
+        }
+
+        async function saveCategory() {
+            const name = document.getElementById('cat-name').value.trim();
+            const isIncome = document.getElementById('cat-type').value === 'income';
+            
+            const activeEmojiEl = document.querySelector('#emoji-grid .emoji-item.active');
+            const icon = activeEmojiEl ? activeEmojiEl.innerText.trim() : '🍔';
+            
+            const activeColorEl = document.querySelector('#color-grid .color-item.active');
+            const color = activeColorEl ? activeColorEl.getAttribute('data-color') : '#ef4444';
+            
+            const limitInput = document.getElementById('cat-limit');
+            const limit = limitInput ? (parseFloat(limitInput.value) || 0) : 0;
+
+            if (!name) {
+                alert("Будь ласка, введіть назву категорії.");
+                return;
+            }
+
+            const payload = { name, isIncome, icon, color, limit };
+            
+            if (editingCategoryId !== null) {
+                payload.id = editingCategoryId;
+            }
+            
+            const reqMethod = editingCategoryId !== null ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(`${API_BASE}/category`, {
+                    method: reqMethod,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    fetchCategories(); // Завантажуємо оновлений список з сервера
+                } else {
+                    const err = await response.text();
+                    alert("Помилка збереження: " + err);
+                }
+            } catch (error) {
+                console.error("Деталі помилки:", error);
+                alert("Не вдалося з'єднатися з сервером.");
+            }
+        }
+
+        // --- Вибір Емодзі та Кольору (Підсвічування) ---
+        function setupSelectors(containerId, itemClass) {
+            const items = document.querySelectorAll(`#${containerId} .${itemClass}`);
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    // Знімаємо active з усіх
+                    items.forEach(i => i.classList.remove('active'));
+                    // Додаємо active до клікнутого
+                    item.classList.add('active');
+                });
+            });
+        }
+
+        // --- Ініціалізація ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupSelectors('emoji-grid', 'emoji-item');
+            setupSelectors('color-grid', 'color-item');
+            fetchCategories();
+        });
+    </script>
+</body>
+</html>

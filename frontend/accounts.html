@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monefy Web | Рахунки</title>
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Основний контент */
+        .content { 
+            padding: 20px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px;
+        }
+
+        /* --- Блок Загального Балансу --- */
+        .total-card {
+            background-color: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-main);
+            padding: 24px;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Декоративні кола на фоні */
+        .total-card::before {
+            content: ''; position: absolute; top: -30px; right: -30px;
+            width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%;
+        }
+        .total-card::after {
+            content: ''; position: absolute; bottom: -20px; left: -20px;
+            width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%;
+        }
+        .total-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        .total-label {
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .currency-select {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+        }
+        .currency-select option { color: var(--text-main); }
+        .total-amount {
+            margin-top: 10px;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Список рахунків --- */
+        .accounts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .account-card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .account-card:hover { transform: translateY(-2px); }
+        .acc-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .acc-icon {
+            width: 48px;
+            height: 48px;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        .acc-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .acc-details p {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .acc-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .action-btn:hover { background: #f1f5f9; color: var(--text-main); }
+        .action-btn.delete:hover { color: var(--color-danger); background: #fef2f2; }
+
+        /* ==========================================================
+           АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
+           ========================================================== */
+        @media (min-width: 800px) {
+            .app-container {
+                max-width: 960px;
+                grid-template-columns: 90px 1fr;
+                grid-template-rows: 80px 1fr;
+            }
+            .content {
+                grid-column: 2 / 3;
+                grid-row: 2 / 3;
+                padding: 30px 40px;
+                display: grid;
+                grid-template-columns: 300px 1fr; /* Ліва колонка 300px, права - все інше */
+                gap: 40px;
+                align-items: start;
+            }
+            .total-card { grid-column: 1 / 2; grid-row: 1 / 2; }
+            .accounts-container {
+                grid-column: 2 / 3;
+                grid-row: 1 / 3;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Плитка рахунків */
+                gap: 20px;
+                align-content: start;
+            }
+            /* Плаваючу кнопку перетворюємо на статичну широку кнопку з текстом */
+            .fab {
+                position: absolute; top: 260px; left: 130px; width: 300px; height: 56px;
+                border-radius: 14px; font-size: 16px; font-weight: 700; bottom: auto; right: auto;
+                display: flex; gap: 10px;
+            }
+            .fab::after { content: 'Додати рахунок'; }
+
+            /* Hover-ефект для карток рахунків на ПК */
+            .account-card {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .account-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Шапка -->
+        <header class="header">
+            <div class="title">Рахунки</div>
+        </header>
+
+        <div class="content">
+            <!-- Блок Загального капіталу -->
+            <div class="total-card">
+                <div class="total-header">
+                    <div class="total-label">Загальний капітал</div>
+                    <select id="currency-selector" class="currency-select" onchange="updateCurrency()">
+                        <option value="UAH">UAH (₴)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                    </select>
+                </div>
+                <div class="total-amount" id="total-balance">0.00 ₴</div>
+            </div>
+
+            <!-- Список Рахунків -->
+            <div class="accounts-container" id="accounts-list">
+                <!-- Згенерується через JS -->
+            </div>
+        </div>
+
+        <!-- Плаваюча кнопка дії -->
+        <button class="fab" onclick="openModal()">+</button>
+
+        <!-- Модальне вікно (Новий рахунок) -->
+        <div class="modal-overlay" id="account-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Новий рахунок</h2>
+                    <button class="btn-close" onclick="closeModal()">×</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Назва рахунку</label>
+                    <input type="text" id="acc-name-input" class="form-control" placeholder="Наприклад: Готівка, Депозит">
+                </div>
+
+                <div class="form-group">
+                    <label>Початковий баланс (UAH)</label>
+                    <input type="number" id="acc-balance-input" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label>Іконка (Емодзі)</label>
+                    <input type="text" id="acc-icon-input" class="form-control" placeholder="💳" maxlength="2" value="💳">
+                </div>
+
+                <button class="btn-primary" onclick="saveAccount()">Зберегти</button>
+            </div>
+        </div>
+
+        <!-- Нижня навігація -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                <span>Головна</span>
+            </a>
+            <a href="history.html" class="nav-item">
+                <span class="nav-icon">📜</span>
+                <span>Історія</span>
+            </a>
+            <a href="accounts.html" class="nav-item active">
+                <span class="nav-icon">💳</span>
+                <span>Рахунки</span>
+            </a>
+            <a href="categories.html" class="nav-item">
+                <span class="nav-icon">🗂</span>
+                <span>Категорії</span>
+            </a>
+        </nav>
+
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8085/api';
+        let currentAccounts = [];
+        let editingAccountId = null; // Глобальна змінна для відстеження режиму редагування
+
+        // --- Глобальні функції: Тема та Валюта ---
+        function formatCurrency(amountInUAH) {
+            const currency = localStorage.getItem('currency') || 'UAH';
+            let amount = amountInUAH;
+            let symbol = '₴';
+
+            if (currency === 'USD') { amount = amountInUAH / 40.0; symbol = '$'; }
+            else if (currency === 'EUR') { amount = amountInUAH / 42.0; symbol = '€'; }
+
+            return amount.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
+        }
+
+        function updateCurrency() {
+            const selected = document.getElementById('currency-selector').value;
+            localStorage.setItem('currency', selected);
+            renderAccounts(); // Перемальовуємо список зі зміненою валютою
+        }
+
+        // --- Завантаження рахунків з бекенду ---
+        async function fetchAccounts() {
+            try {
+                const response = await fetch(`${API_BASE}/accounts`);
+                if (!response.ok) throw new Error('Мережева помилка');
+                currentAccounts = await response.json();
+                renderAccounts();
+            } catch (error) {
+                console.error("Помилка завантаження:", error);
+                document.getElementById('accounts-list').innerHTML = 
+                    '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Не вдалося завантажити рахунки з сервера</p>';
+            }
+        }
+
+        function renderAccounts() {
+            const container = document.getElementById('accounts-list');
+            container.innerHTML = '';
+            let totalBalanceUAH = 0;
+
+            currentAccounts.forEach(acc => {
+                totalBalanceUAH += acc.balance;
+                
+                container.innerHTML += `
+                    <div class="account-card">
+                        <div class="acc-info">
+                            <div class="acc-icon">${acc.icon}</div>
+                            <div class="acc-details">
+                                <h3>${acc.name}</h3>
+                                <p>${formatCurrency(acc.balance)}</p>
+                            </div>
+                        </div>
+                        <div class="acc-actions">
+                            <button class="action-btn" title="Редагувати" onclick="editAccount(${acc.id})">✏️</button>
+                            <button class="action-btn delete" title="Видалити" onclick="deleteAccount(${acc.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Оновлюємо загальний капітал
+            document.getElementById('total-balance').innerText = formatCurrency(totalBalanceUAH);
+        }
+
+        // --- Логіка модального вікна ---
+        function openModal() {
+            document.getElementById('account-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('account-modal').classList.remove('active');
+            
+            // Скидаємо режим редагування
+            editingAccountId = null;
+            document.querySelector('#account-modal h2').innerText = 'Новий рахунок';
+            
+            document.getElementById('acc-name-input').value = '';
+            document.getElementById('acc-balance-input').value = '';
+            document.getElementById('acc-icon-input').value = '💳';
+        }
+
+        // --- Редагування рахунку ---
+        function editAccount(id) {
+            const acc = currentAccounts.find(a => a.id === id);
+            if (!acc) return;
+
+            editingAccountId = id; // Встановлюємо ID для режиму редагування
+            document.querySelector('#account-modal h2').innerText = 'Редагувати рахунок';
+
+            // Заповнюємо поля поточними даними рахунку
+            document.getElementById('acc-name-input').value = acc.name;
+            document.getElementById('acc-balance-input').value = acc.balance;
+            document.getElementById('acc-icon-input').value = acc.icon;
+
+            openModal();
+        }
+
+        async function saveAccount() {
+            const name = document.getElementById('acc-name-input').value.trim();
+            const balance = parseFloat(document.getElementById('acc-balance-input').value);
+            const icon = document.getElementById('acc-icon-input').value.trim() || "💳";
+
+            if (!name || isNaN(balance)) {
+                alert("Будь ласка, введіть назву та початковий баланс.");
+                return;
+            }
+
+            const payload = { name, balance, icon };
+
+            // Якщо ми редагуємо існуючий рахунок, додаємо його ID
+            if (editingAccountId !== null) {
+                payload.id = editingAccountId;
+            }
+
+            const reqMethod = editingAccountId !== null ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(`${API_BASE}/account`, {
+                    method: reqMethod,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    fetchAccounts(); // Завантажуємо оновлений список з сервера
+                } else {
+                    const err = await response.text();
+                    alert("Помилка збереження: " + err);
+                }
+            } catch (error) {
+                console.error("Деталі помилки:", error);
+                alert("Не вдалося з'єднатися з сервером.");
+            }
+        }
+
+        // --- Видалення рахунку ---
+        async function deleteAccount(id) {
+            if (!confirm("Видалити рахунок? Це також видалить всі транзакції, пов'язані з ним!")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/account/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    fetchAccounts(); // Оновлюємо список після успішного видалення
+                } else {
+                    const err = await response.text();
+                    alert("Помилка видалення: " + err);
+                }
+            } catch (error) {
+                console.error("Деталі помилки:", error);
+                alert("Не вдалося з'єднатися з сервером.");
+            }
+        }
+
+        // --- Ініціалізація ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Встановлюємо значення селектора валют з localStorage
+            const savedCurrency = localStorage.getItem('currency') || 'UAH';
+            document.getElementById('currency-selector').value = savedCurrency;
+            
+            fetchAccounts();
+        });
+    </script>
+</body>
+</html>
