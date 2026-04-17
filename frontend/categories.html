@@ -115,12 +115,10 @@
         }
         .color-item.active { outline-color: var(--color-primary); transform: scale(1.1); }
 
-        /* ==========================================================
-           АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
-           ========================================================== */
+    
         @media (min-width: 800px) {
             .app-container {
-                max-width: 900px;
+                max-width: none;
                 grid-template-columns: 90px 1fr; /* 90px для сайдбару, решта для контенту */
                 grid-template-rows: 80px 1fr;    /* 80px для шапки, решта для контенту */
             }
