@@ -20,4 +20,10 @@ public:
     
     // Видалення запису за ID
     bool deleteUser(int id);
+
+    // Авторизація користувача за email та хешем пароля
+    bool authenticateUser(const char* email, const char* passwordHash, User& outUser);
+
+    // Перевірка, чи існує користувач із таким email
+    bool isEmailTaken(const char* email);
 };

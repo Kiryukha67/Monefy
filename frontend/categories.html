@@ -230,6 +230,10 @@
     </div>
 
     <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'auth.html';
+        }
+
         const API_BASE = 'http://localhost:8085/api';
         let currentCategories = [];
         let editingCategoryId = null; // Глобальна змінна для відстеження режиму редагування

@@ -144,9 +144,17 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    // ЗБЕРІГАЄМО ТОКЕН!
-                    localStorage.setItem('token', data.token);
-                    window.location.href = 'index.html'; // Редирект на головну
+                    console.log("Дані від сервера:", data);
+
+                    if (data.token && data.token !== "undefined") {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('username', data.username || username);
+                        console.log("Токен збережено, переходимо на головну...");
+                        window.location.href = 'index.html';
+                    } else {
+                        console.error("Помилка: сервер надіслав пустий токен");
+                        errorDiv.innerText = "Помилка сервера: токен відсутній";
+                    }
                 } else {
                     const err = await response.text();
                     errorDiv.innerText = err || "Помилка авторизації";

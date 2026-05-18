@@ -3,14 +3,14 @@
 
 struct User {
     int id;
-    char username[50];
-    char password[50];
-    char token[64];
+    char name[50];
+    char email[100];
+    char passwordHash[128];
 
     // Безпечна ініціалізація нулями
     User() : id(0) {
-        std::memset(username, 0, sizeof(username));
-        std::memset(password, 0, sizeof(password));
-        std::memset(token, 0, sizeof(token));
+        std::memset(name, 0, sizeof(name));
+        std::memset(email, 0, sizeof(email));
+        std::memset(passwordHash, 0, sizeof(passwordHash));
     }
 };

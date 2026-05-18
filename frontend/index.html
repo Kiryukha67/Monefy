@@ -135,6 +135,10 @@
         <header class="header">
             <div class="logo">Monefy</div>
             <select class="account-selector" id="acc-select" style="border: none; outline: none; appearance: none; font-family: inherit; text-align: center;" onchange="fetchDataAndRender()"></select>
+            <div id="user-profile-section" style="display: flex; align-items: center; gap: 10px;">
+                <span id="user-name-display" style="font-weight: 600; color: var(--text-main); display: none;"></span>
+                <button id="logout-button" onclick="logout()" style="background:none; border:none; font-size:20px; cursor:pointer; color: var(--text-muted); display: none;" title="Вийти">🚪</button>
+            </div>
         </header>
 
         <div class="content">
@@ -192,10 +196,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>Категорія</label>
-                    <select id="tx-category" class="form-control">
-                        <!-- Динамічно заповнюється через JS -->
-                    </select>
+                    <label>Оберіть категорію</label>
+                    <div id="tx-category-grid" class="category-selector-grid"></div>
+                    <input type="hidden" id="tx-category-id">
                 </div>
 
                 <div class="form-group">
@@ -253,6 +256,15 @@
 
     <script>
         // --- Глобальні змінні ---
+        // Перевірка авторизації: якщо токена немає, йдемо на сторінку входу
+        const token = localStorage.getItem('token');
+        console.log("Debug Auth - Token:", token);
+
+        if (!token || token === 'undefined' || token === 'null') {
+            console.log("Авторизація відсутня, перенаправлення на auth.html");
+            window.location.href = 'auth.html';
+        }
+
         let currentTxType = 'expense';
         let currentChartMode = 'expense'; // Стан перемикача графіка
         let myChart = null;
@@ -273,14 +285,38 @@
             return amount.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
         }
 
+        // --- Функції профілю ---
+        function updateUserProfileDisplay() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            const logoutBtn = document.getElementById('logout-button');
+            const nameDisp = document.getElementById('user-name-display');
+
+            if (token) {
+                if (logoutBtn) logoutBtn.style.display = 'flex';
+                if (nameDisp) {
+                    nameDisp.style.display = 'inline';
+                    nameDisp.innerText = username || 'Користувач';
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'auth.html';
+        }
+
         // --- Ініціалізація додатку ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Приложение теперь запускается без авторизации
             initApp();
         });
 
         // Завантаження базових даних (Рахунки та Категорії)
         async function initApp() {
             try {
+                console.log("Спроба підключення до бекенду:", API_BASE);
+                updateUserProfileDisplay(); // Перевіряємо профіль при старті
                 const [accRes, catRes] = await Promise.all([
                     fetch(`${API_BASE}/accounts`),
                     fetch(`${API_BASE}/categories`)
@@ -472,22 +508,32 @@
             document.getElementById('tx-amount').value = '';
             document.getElementById('tx-comment').value = '';
             
-            // Динамічне заповнення категорій залежно від типу
-            const catSelect = document.getElementById('tx-category');
-            catSelect.innerHTML = '';
-            
-            const isIncomeTarget = (type === 'income');
-            const filteredCategories = allCategories.filter(cat => cat.isIncome === isIncomeTarget);
-            
-            if (filteredCategories.length === 0) {
-                catSelect.innerHTML = '<option value="">Немає доступних категорій</option>';
-            } else {
-                filteredCategories.forEach(cat => {
-                    catSelect.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
-                });
-            }
-
+            renderCategoriesInModal(type);
             document.getElementById('transaction-modal').classList.add('active');
+        }
+
+        function renderCategoriesInModal(type) {
+            const grid = document.getElementById('tx-category-grid');
+            const hiddenInput = document.getElementById('tx-category-id');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            hiddenInput.value = '';
+
+            const isIncomeTarget = (type === 'income');
+            const filtered = allCategories.filter(cat => cat.isIncome === isIncomeTarget);
+
+            filtered.forEach(cat => {
+                const btn = document.createElement('div');
+                btn.className = 'cat-btn';
+                btn.innerHTML = `<span class="cat-btn-emoji">${cat.icon}</span><span class="cat-btn-name">${cat.name}</span>`;
+                btn.onclick = () => {
+                    grid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    hiddenInput.value = cat.id;
+                };
+                grid.appendChild(btn);
+            });
         }
 
         function closeModal() {
@@ -497,7 +543,7 @@
         // --- Відправка транзакції на бекенд ---
         async function submitTransaction() {
             const amount = parseFloat(document.getElementById('tx-amount').value);
-            const categoryId = parseInt(document.getElementById('tx-category').value);
+            const categoryId = parseInt(document.getElementById('tx-category-id').value);
             const isIncome = (currentTxType === 'income');
             const date = new Date().toISOString().split('T')[0];
             

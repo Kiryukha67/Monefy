@@ -1,6 +1,7 @@
 #include "UserStorage.h"
 #include <fstream>
 #include <cstdio> // для функцій remove та rename
+#include <cstring> // для функції strcmp
 
 void UserStorage::addUser(const User& user) {
     // Відкриваємо файл для додавання (app) у бінарному режимі (binary)
@@ -15,7 +16,7 @@ bool UserStorage::getUserById(int id, User& outUser) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) return false;
 
-    User temp;
+    User temp = {}; // Ініціалізуємо нулями
     // Читаємо файл блок за блоком (розміром з нашу структуру)
     while (file.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
         if (temp.id == id) {
@@ -33,7 +34,7 @@ void UserStorage::getAllUsers(User* outArray, int& count, int maxCount) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) return;
 
-    User temp;
+    User temp = {};
     while (file.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
         if (count < maxCount) {
             outArray[count] = temp;
@@ -49,7 +50,7 @@ bool UserStorage::updateUser(const User& updatedUser) {
     std::fstream file(filename, std::ios::binary | std::ios::in | std::ios::out);
     if (!file.is_open()) return false;
 
-    User temp;
+    User temp = {};
     while (file.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
         if (temp.id == updatedUser.id) {
             // Повертаємо курсор файлу назад на розмір однієї структури
@@ -76,7 +77,7 @@ bool UserStorage::deleteUser(int id) {
     }
 
     bool found = false;
-    User temp;
+    User temp = {};
     while (inFile.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
         if (temp.id != id) {
             // Записуємо у тимчасовий файл всіх, КРІМ того, кого треба видалити
@@ -98,4 +99,39 @@ bool UserStorage::deleteUser(int id) {
     }
 
     return found;
+}
+
+// Авторизація користувача за email та хешем пароля
+bool UserStorage::authenticateUser(const char* email, const char* passwordHash, User& outUser) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) return false;
+
+    User temp = {};
+    while (file.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
+        // Порівнюємо email та хеш пароля
+        // Примітка: strcmp повертає 0, якщо рядки ідентичні
+        if (std::strcmp(temp.email, email) == 0 && std::strcmp(temp.passwordHash, passwordHash) == 0) {
+            outUser = temp; // Знайшли та авторизували!
+            file.close();
+            return true;
+        }
+    }
+    file.close();
+    return false; // Користувача з таким email або невірним паролем не знайдено
+}
+
+// Перевірка, чи існує користувач із таким email
+bool UserStorage::isEmailTaken(const char* email) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open()) return false;
+
+    User temp = {};
+    while (file.read(reinterpret_cast<char*>(&temp), sizeof(User))) {
+        if (std::strcmp(temp.email, email) == 0) {
+            file.close();
+            return true;
+        }
+    }
+    file.close();
+    return false;
 }

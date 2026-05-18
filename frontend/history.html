@@ -245,6 +245,10 @@
     </div>
 
     <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'auth.html';
+        }
+
         const API_BASE = 'http://localhost:8085/api';
         
         // Глобальний масив для зберігання всіх транзакцій з бекенду

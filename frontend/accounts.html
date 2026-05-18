@@ -261,6 +261,10 @@
     </div>
 
     <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = 'auth.html';
+        }
+
         const API_BASE = 'http://localhost:8085/api';
         let currentAccounts = [];
         let editingAccountId = null; // Глобальна змінна для відстеження режиму редагування

@@ -35,6 +35,7 @@ FetchContent_MakeAvailable(Crow)
 add_executable(monefy_server 
     backend/main.cpp
     backend/storage/CategoryStorage.cpp
+    backend/storage/UserStorage.cpp
     backend/storage/AccountStorage.cpp
     backend/storage/TransactionStorage.cpp
     backend/services/TransactionService.cpp

@@ -3,6 +3,8 @@
 #include <exception>
 #include "storage/AccountStorage.h"
 #include "storage/CategoryStorage.h"
+#include <iostream>
+#include "storage/UserStorage.h"
 #include "services/TransactionService.h"
 #include <ctime> // Для std::time (генерація унікальних ID)
 
@@ -22,6 +24,7 @@ int main() {
 
     AccountStorage accountStorage;
     CategoryStorage categoryStorage;
+    UserStorage userStorage;
     TransactionService transactionService;
 
     // Створюємо базовий рахунок
@@ -62,13 +65,9 @@ int main() {
             json_resp["name"] = acc.name;
             json_resp["balance"] = acc.balance;
             
-            auto res = crow::response(json_resp);
-            res.add_header("Access-Control-Allow-Origin", "*"); 
-            return res;
+            return crow::response(json_resp);
         }
-        auto res = crow::response(404, "Account not found");
-        res.add_header("Access-Control-Allow-Origin", "*");
-        return res;
+        return crow::response(404, "Account not found");
     });
 
     // НОВИЙ МАРШРУТ: Приймаємо транзакції (доходи і витрати)
@@ -78,16 +77,12 @@ int main() {
         // Читаємо JSON, який прислав браузер
         auto data = crow::json::load(req.body);
         if (!data) {
-            auto res = crow::response(400, "Invalid JSON");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid JSON");
         }
 
         // Валідація полів JSON
         if (!data.has("amount") || !data.has("isIncome") || !data.has("categoryId") || !data.has("accountId") || !data.has("date")) {
-            auto res = crow::response(400, "Missing required fields");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Missing required fields");
         }
 
         // АБСОЛЮТНО БЕЗПЕЧНЕ ЧИТАННЯ БЕЗ КРАШІВ
@@ -95,53 +90,37 @@ int main() {
         if (data["amount"].t() == crow::json::type::Number) {
             amount = data["amount"].d();
         } else {
-            auto res = crow::response(400, "Invalid type for amount");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid type for amount");
         }
 
         if (data["isIncome"].t() != crow::json::type::True && data["isIncome"].t() != crow::json::type::False) {
-            auto res = crow::response(400, "Invalid type for isIncome");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid type for isIncome");
         }
         bool isIncome = data["isIncome"].b();
 
         if (data["categoryId"].t() != crow::json::type::Number) {
-            auto res = crow::response(400, "Invalid type for categoryId");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid type for categoryId");
         }
         int categoryId = static_cast<int>(data["categoryId"].d()); // Безпечне читання числа
 
         if (data["date"].t() != crow::json::type::String) {
-            auto res = crow::response(400, "Invalid type for date");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid type for date");
         }
         std::string date = data["date"].s();
         
         if (data["accountId"].t() != crow::json::type::Number) {
-            auto res = crow::response(400, "Invalid type for accountId");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(400, "Invalid type for accountId");
         }
         int accountId = static_cast<int>(data["accountId"].d());
 
         // Викликаємо нашу бізнес-логіку!
         if (transactionService.addTransaction(amount, isIncome, date.c_str(), categoryId, accountId)) {
-            auto res = crow::response(200, "Success");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Success");
         }
         
-        auto res = crow::response(400, "Transaction failed (Insufficient funds)");
-        res.add_header("Access-Control-Allow-Origin", "*");
-        return res;
+        return crow::response(400, "Transaction failed (Insufficient funds)");
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Exception: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Exception: ") + e.what());
         }
     });
 
@@ -155,9 +134,7 @@ int main() {
             if (!data) return crow::response(400, "Invalid JSON");
 
             if (!data.has("fromAccountId") || !data.has("toAccountId") || !data.has("amount") || !data.has("date")) {
-                auto res = crow::response(400, "Missing required fields");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(400, "Missing required fields");
             }
 
             int fromAccountId = static_cast<int>(data["fromAccountId"].d());
@@ -166,23 +143,17 @@ int main() {
             std::string date = data["date"].s();
 
             if (fromAccountId == toAccountId || amount <= 0) {
-                auto res = crow::response(400, "Invalid transfer parameters");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(400, "Invalid transfer parameters");
             }
 
             Account fromAcc, toAcc;
             if (!accountStorage.getAccountById(fromAccountId, fromAcc) || 
                 !accountStorage.getAccountById(toAccountId, toAcc)) {
-                auto res = crow::response(404, "One or both accounts not found");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(404, "One or both accounts not found");
             }
 
             if (fromAcc.balance < amount) {
-                auto res = crow::response(400, "Insufficient funds");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(400, "Insufficient funds");
             }
 
             // 1. Оновлюємо баланси рахунків
@@ -196,13 +167,9 @@ int main() {
             transactionService.addTransaction(amount, false, date.c_str(), 0, fromAccountId); // Витрата з першого
             transactionService.addTransaction(amount, true, date.c_str(), 0, toAccountId);    // Дохід на другий
 
-            auto res = crow::response(200, "Transfer successful");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Transfer successful");
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
 
@@ -244,9 +211,7 @@ int main() {
             json_txs.push_back(tx);
         }
         
-        auto res = crow::response(crow::json::wvalue(json_txs));
-        res.add_header("Access-Control-Allow-Origin", "*");
-        return res;
+        return crow::response(crow::json::wvalue(json_txs));
     });
 
     // МАРШРУТ: Аналітика (Кругова діаграма)
@@ -283,9 +248,7 @@ int main() {
         res_json["data"] = dataArray;
         res_json["colors"] = colorsArray;
         
-        auto res = crow::response(res_json);
-        res.add_header("Access-Control-Allow-Origin", "*");
-        return res;
+        return crow::response(res_json);
     });
 
     // ==========================================================
@@ -307,13 +270,9 @@ int main() {
                 json_accounts.push_back(acc);
             }
 
-            auto res = crow::response(crow::json::wvalue(json_accounts));
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(crow::json::wvalue(json_accounts));
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
 
@@ -324,26 +283,18 @@ int main() {
     ([&accountStorage](const crow::request& req) {
         try {
             auto data = crow::json::load(req.body);
-            if (!data) {
-                auto res = crow::response(400, "Invalid JSON");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
+            if (!data) return crow::response(400, "Invalid JSON");
 
             // Перевірка наявності полів
             if (!data.has("name") || !data.has("balance") || !data.has("icon")) {
-                auto res = crow::response(400, "Missing required fields");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(400, "Missing required fields");
             }
 
             // Сувора перевірка типів JSON
             if (data["name"].t() != crow::json::type::String || 
                 data["balance"].t() != crow::json::type::Number ||
                 data["icon"].t() != crow::json::type::String) {
-                auto res = crow::response(400, "Invalid field types");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
+                return crow::response(400, "Invalid field types");
             }
 
             Account newAcc = {};
@@ -361,13 +312,9 @@ int main() {
 
             accountStorage.addAccount(newAcc);
 
-            auto res = crow::response(200, "Account created successfully");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Account created successfully");
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
 
@@ -386,11 +333,7 @@ int main() {
 
             Account acc;
             int accId = data["id"].i();
-            if (!accountStorage.getAccountById(accId, acc)) {
-                auto res = crow::response(404, "Account not found");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
+            if (!accountStorage.getAccountById(accId, acc)) return crow::response(404, "Account not found");
 
             acc.balance = data["balance"].d();
 
@@ -404,9 +347,7 @@ int main() {
 
             accountStorage.updateAccount(acc);
 
-            auto res = crow::response(200, "Account updated successfully");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Account updated successfully");
         } catch (const std::exception& e) {
             return crow::response(500, std::string("Server Error: ") + e.what());
         }
@@ -418,14 +359,8 @@ int main() {
     CROW_ROUTE(app, "/api/account/<int>").methods(crow::HTTPMethod::DELETE)
     ([&accountStorage](int id) {
         try {
-            if (accountStorage.deleteAccount(id)) {
-                auto res = crow::response(200, "Account deleted successfully");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
-            auto res = crow::response(404, "Account not found");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            if (accountStorage.deleteAccount(id)) return crow::response(200, "Account deleted successfully");
+            return crow::response(404, "Account not found");
         } catch (const std::exception& e) {
             return crow::response(500, std::string("Server Error: ") + e.what());
         }
@@ -451,13 +386,9 @@ int main() {
                 json_cats.push_back(cat);
             }
 
-            auto res = crow::response(crow::json::wvalue(json_cats));
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(crow::json::wvalue(json_cats));
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
 
@@ -490,9 +421,7 @@ int main() {
 
             categoryStorage.addCategory(newCat);
 
-            auto res = crow::response(200, "Category created successfully");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Category created successfully");
         } catch (const std::exception& e) {
             return crow::response(500, std::string("Server Error: ") + e.what());
         }
@@ -513,11 +442,7 @@ int main() {
 
             Category cat;
             int catId = data["id"].i();
-            if (!categoryStorage.getCategoryById(catId, cat)) {
-                auto res = crow::response(404, "Category not found");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
+            if (!categoryStorage.getCategoryById(catId, cat)) return crow::response(404, "Category not found");
 
             cat.isIncome = data["isIncome"].b();
             
@@ -534,9 +459,7 @@ int main() {
 
             categoryStorage.updateCategory(cat);
 
-            auto res = crow::response(200, "Category updated successfully");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(200, "Category updated successfully");
         } catch (const std::exception& e) {
             return crow::response(500, std::string("Server Error: ") + e.what());
         }
@@ -548,18 +471,10 @@ int main() {
     CROW_ROUTE(app, "/api/category/<int>").methods(crow::HTTPMethod::DELETE)
     ([&categoryStorage](int id) {
         try {
-            if (categoryStorage.deleteCategory(id)) {
-                auto res = crow::response(200, "Category deleted successfully");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
-            auto res = crow::response(404, "Category not found");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            if (categoryStorage.deleteCategory(id)) return crow::response(200, "Category deleted successfully");
+            return crow::response(404, "Category not found");
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
 
@@ -569,20 +484,83 @@ int main() {
     CROW_ROUTE(app, "/api/transaction/<int>").methods(crow::HTTPMethod::DELETE)
     ([&transactionService](int id) {
         try {
-            if (transactionService.deleteTransaction(id)) {
-                auto res = crow::response(200, "Transaction deleted successfully");
-                res.add_header("Access-Control-Allow-Origin", "*");
-                return res;
-            }
-            auto res = crow::response(404, "Transaction not found");
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            if (transactionService.deleteTransaction(id)) return crow::response(200, "Transaction deleted successfully");
+            return crow::response(404, "Transaction not found");
         } catch (const std::exception& e) {
-            auto res = crow::response(500, std::string("Server Error: ") + e.what());
-            res.add_header("Access-Control-Allow-Origin", "*");
-            return res;
+            return crow::response(500, std::string("Server Error: ") + e.what());
         }
     });
+
+    // ==========================================================
+    // --- 8. Реєстрація нового користувача (POST /api/register) ---
+    // ==========================================================
+    CROW_ROUTE(app, "/api/register").methods(crow::HTTPMethod::POST)
+    ([&userStorage](const crow::request& req) {
+        try {
+            auto data = crow::json::load(req.body);
+            if (!data || !data.has("username") || !data.has("password")) {
+                return crow::response(400, "Missing required fields");
+            }
+
+            std::string username = data["username"].s();
+            std::string password = data["password"].s();
+
+            // Перевірка унікальності email
+            if (userStorage.isEmailTaken(username.c_str())) return crow::response(400, "Користувач вже існує");
+
+            User newUser = {}; // Очищаємо структуру перед заповненням
+            newUser.id = static_cast<int>(std::time(nullptr));
+            std::strncpy(newUser.name, username.c_str(), sizeof(newUser.name) - 1);
+            newUser.name[sizeof(newUser.name) - 1] = '\0';
+            std::strncpy(newUser.email, username.c_str(), sizeof(newUser.email) - 1);
+            newUser.email[sizeof(newUser.email) - 1] = '\0';
+            std::strncpy(newUser.passwordHash, password.c_str(), sizeof(newUser.passwordHash) - 1);
+            newUser.passwordHash[sizeof(newUser.passwordHash) - 1] = '\0';
+
+            userStorage.addUser(newUser);
+
+            crow::json::wvalue res_json;
+            res_json["token"] = "auth-token-" + std::to_string(newUser.id);
+            res_json["username"] = std::string(newUser.name);
+            return crow::response(200, res_json);
+        } catch (const std::exception& e) {
+            return crow::response(500, std::string("Registration Error: ") + e.what());
+        }
+    });
+
+    // ==========================================================
+    // --- 9. Вхід користувача (POST /api/login) ---
+    // ==========================================================
+    CROW_ROUTE(app, "/api/login").methods(crow::HTTPMethod::POST)
+    ([&userStorage](const crow::request& req) {
+        try {
+            auto data = crow::json::load(req.body);
+            if (!data || !data.has("username") || !data.has("password")) {
+                return crow::response(400, "Заповніть всі поля");
+            }
+
+            std::string username = data["username"].s();
+            std::string password = data["password"].s();
+
+            User user;
+            if (userStorage.authenticateUser(username.c_str(), password.c_str(), user)) {
+                crow::json::wvalue res_json;
+                // Токен має бути таким самим за форматом, як при реєстрації
+                res_json["token"] = "token-" + std::to_string(user.id);
+                res_json["username"] = std::string(user.name);
+                return crow::response(200, res_json);
+            } else {
+                return crow::response(401, "Невірний логін або пароль");
+            }
+        } catch (const std::exception& e) {
+            return crow::response(500, "Server Error");
+        }
+    });
+
+    std::cout << "\n==================================================" << std::endl;
+    std::cout << "Monefy Server is running on http://localhost:8085" << std::endl;
+    std::cout << "Now you can run index.html via Live Server." << std::endl;
+    std::cout << "==================================================\n" << std::endl;
 
     app.port(8085).multithreaded().run();
     return 0;
