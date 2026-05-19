@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monefy Web | Історія операцій</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token || token === 'undefined' || token === 'null') {
+            window.location.replace('auth.html');
+        }
+    </script>
 
     <style>
         /* --- Панель фільтрів (Sticky) --- */
@@ -245,10 +251,6 @@
     </div>
 
     <script>
-        if (!localStorage.getItem('token')) {
-            window.location.href = 'auth.html';
-        }
-
         const API_BASE = 'http://localhost:8085/api';
         
         // Глобальний масив для зберігання всіх транзакцій з бекенду

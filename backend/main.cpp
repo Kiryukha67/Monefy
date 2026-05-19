@@ -505,8 +505,13 @@ int main() {
             std::string username = data["username"].s();
             std::string password = data["password"].s();
 
+            // Валідація: мінімальна довжина
+            if (username.length() < 3 || password.length() < 3) {
+                return crow::response(400, "Логін та пароль мають бути не менше 3 символів");
+            }
+
             // Перевірка унікальності email
-            if (userStorage.isEmailTaken(username.c_str())) return crow::response(400, "Користувач вже існує");
+            if (userStorage.isEmailTaken(username.c_str())) return crow::response(400, "Користувач з таким логіном вже існує");
 
             User newUser = {}; // Очищаємо структуру перед заповненням
             newUser.id = static_cast<int>(std::time(nullptr));
