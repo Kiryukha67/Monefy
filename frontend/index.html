@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monefy Web | Сучасний облік фінансов</title>
     
-    <!-- Підключення Chart.js з CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Миттєва перевірка авторизації перед завантаженням контенту
         const token = localStorage.getItem('token');
         if (!token || token === 'undefined' || token === 'null') {
             window.location.replace('auth.html');
@@ -17,10 +15,8 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
-        /* Основний контент */
         .content { padding: 20px 20px 80px 20px; flex-grow: 1; display: flex; flex-direction: column; gap: 20px; }
 
-        /* --- Блок балансу --- */
         .card {
             background-color: var(--bg-card);
             border-radius: var(--radius-main);
@@ -31,7 +27,6 @@
         .balance-label { font-size: 14px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
         .balance-amount { font-size: 42px; font-weight: 800; margin-top: 8px; letter-spacing: -1px; }
 
-        /* --- Кнопки дій --- */
         .action-buttons { display: flex; gap: 15px; }
         .btn {
             flex: 1; padding: 16px 0; border: none; border-radius: var(--radius-btn);
@@ -46,8 +41,6 @@
         .btn-transfer { background-color: var(--text-muted); }
         .btn-primary { background-color: var(--color-primary); width: 100%; margin-top: 15px;}
 
-        /* --- Графік --- */
-        /* --- Перемикач графіка --- */
         .chart-toggle {
             display: flex; background: #f1f5f9; border-radius: 12px;
             padding: 4px; margin-bottom: 16px;
@@ -64,7 +57,6 @@
         .chart-section h3, .transactions-section h3 { font-size: 16px; margin-bottom: 16px; color: var(--text-main); }
         .chart-container { position: relative; height: 200px; width: 100%; display: flex; justify-content: center; }
 
-        /* --- Список транзакцій --- */
         .transaction-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 12px 0; border-bottom: 1px solid #f1f5f9;
@@ -138,7 +130,6 @@
 
     <div class="app-container">
         
-        <!-- Шапка -->
         <header class="header">
             <div class="logo">Monefy</div>
             <select class="account-selector" id="acc-select" style="border: none; outline: none; appearance: none; font-family: inherit; text-align: center;" onchange="fetchDataAndRender()"></select>
@@ -149,13 +140,11 @@
         </header>
 
         <div class="content">
-            <!-- Баланс -->
             <div class="card balance-section">
                 <div class="balance-label">Загальний баланс</div>
                 <div class="balance-amount" id="acc-balance">0.00 ₴</div>
             </div>
 
-            <!-- Кнопки дій -->
             <div class="action-buttons">
                 <button class="btn btn-expense" onclick="openModal('expense')">
                     <span style="font-size: 20px;">-</span> Витрата
@@ -168,7 +157,6 @@
                 </button>
             </div>
 
-            <!-- Графік (Аналітика) -->
             <div class="card chart-section">
                 <h3>Аналітика</h3>
                 <div class="chart-toggle">
@@ -180,16 +168,13 @@
                 </div>
             </div>
 
-            <!-- Останні транзакції -->
             <div class="card transactions-section">
                 <h3>Останні транзакції</h3>
                 <div id="transactions-list">
-                    <!-- Транзакції будуть згенеровані через JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Модальне вікно (Нижня панель) -->
         <div class="modal-overlay" id="transaction-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -217,7 +202,6 @@
             </div>
         </div>
 
-        <!-- Модальне вікно (Переказ) -->
         <div class="modal-overlay" id="transfer-modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -240,7 +224,6 @@
             </div>
         </div>
 
-        <!-- Нижня навігація -->
         <nav class="bottom-nav">
             <a href="index.html" class="nav-item active">
                 <span class="nav-icon">🏠</span>
@@ -262,16 +245,14 @@
     </div>
 
     <script>
-        // --- Глобальні змінні ---
         let currentTxType = 'expense';
-        let currentChartMode = 'expense'; // Стан перемикача графіка
+        let currentChartMode = 'expense';
         let myChart = null;
         const API_BASE = 'http://localhost:8085/api';
         
         let allAccounts = [];
         let allCategories = [];
 
-        // --- Глобальні функції: Тема та Валюта ---
         function formatCurrency(amountInUAH) {
             const currency = localStorage.getItem('currency') || 'UAH';
             let amount = amountInUAH;
@@ -283,9 +264,8 @@
             return amount.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
         }
 
-        // --- Функції профілю ---
         function updateUserProfileDisplay() {
-            const token = localStorage.getItem('token'); // Беремо актуальний токен
+            const token = localStorage.getItem('token');
             const username = localStorage.getItem('username');
             const logoutBtn = document.getElementById('logout-button');
             const nameDisp = document.getElementById('user-name-display');
@@ -304,16 +284,13 @@
             window.location.href = 'auth.html';
         }
 
-        // --- Ініціалізація додатку ---
         document.addEventListener('DOMContentLoaded', () => {
             initApp();
         });
 
-        // Завантаження базових даних (Рахунки та Категорії)
         async function initApp() {
             try {
-                console.log("Спроба підключення до бекенду:", API_BASE);
-                updateUserProfileDisplay(); // Перевіряємо профіль при старті
+                updateUserProfileDisplay();
                 const [accRes, catRes] = await Promise.all([
                     fetch(`${API_BASE}/accounts`),
                     fetch(`${API_BASE}/categories`)
@@ -322,26 +299,21 @@
                 if (accRes.ok) allAccounts = await accRes.json();
                 if (catRes.ok) allCategories = await catRes.json();
 
-                // Заповнюємо випадаючий список рахунків
                 const accSelect = document.getElementById('acc-select');
                 accSelect.innerHTML = '';
                 allAccounts.forEach(acc => {
                     accSelect.innerHTML += `<option value="${acc.id}">${acc.icon} ${acc.name}</option>`;
                 });
 
-                // Після завантаження рахунків відмальовуємо дашборд
                 fetchDataAndRender();
-                setupChartSwipe(); // Ініціалізуємо слухачі свайпів
+                setupChartSwipe();
             } catch (error) {
-                console.error("Помилка ініціалізації:", error);
                 alert("Не вдалося підключитися до сервера. Перевірте, чи запущено C++ бекенд.");
             }
         }
 
-        // Головна функція оновлення дашборду
         async function fetchDataAndRender() {
             try {
-                // 1. Оновлюємо баланс з вибраного рахунку
                 const accSelect = document.getElementById('acc-select');
                 const selectedAccountId = accSelect.value;
                 const selectedAcc = allAccounts.find(a => a.id == selectedAccountId);
@@ -350,31 +322,25 @@
                     renderBalance(selectedAcc.balance);
                 }
                 
-                // 2. Завантажуємо реальну аналітику (виклик функції перемикання)
                 await switchChartType(currentChartMode);
 
-                // 3. Завантажуємо історію транзакцій
                 const resTx = await fetch(`${API_BASE}/transactions`);
                 if (resTx.ok) {
                     const txData = await resTx.json();
                     renderTransactions(txData);
                 }
             } catch (error) {
-                console.error("Помилка завантаження даних дашборду:", error);
+                console.error(error);
             }
         }
 
-        // --- Відображення Балансу ---
         function renderBalance(balance) {
-            // Використовуємо нову функцію форматування замість жорсткого '₴'
             document.getElementById('acc-balance').innerText = formatCurrency(balance);
         }
 
-        // --- Логіка перемикання графіка ---
         async function switchChartType(type) {
             currentChartMode = type;
             
-            // Оновлення стилів кнопок
             const btnExp = document.getElementById('btn-chart-expense');
             const btnInc = document.getElementById('btn-chart-income');
             
@@ -387,12 +353,11 @@
             }
 
             try {
-                // Робимо fetch з параметром типу
                 const resAnalytics = await fetch(`${API_BASE}/analytics?type=${type}`);
                 if (resAnalytics.ok) {
                     const analyticsData = await resAnalytics.json();
                     if (analyticsData.labels.length === 0) {
-                         renderChart(['Немає даних'], [1], ['#cbd5e1']); // Сірий колір для порожнього графіка
+                         renderChart(['Немає даних'], [1], ['#cbd5e1']);
                     } else {
                          renderChart(analyticsData.labels, analyticsData.data, analyticsData.colors);
                     }
@@ -402,38 +367,34 @@
             }
         }
 
-        // --- Логіка свайпів для графіка ---
         function setupChartSwipe() {
             const container = document.getElementById('chart-swipe-container');
             let startX = 0, endX = 0;
 
             const handleSwipe = () => {
                 const diff = startX - endX;
-                if (Math.abs(diff) > 50) { // Поріг свайпу 50px
+                if (Math.abs(diff) > 50) {
                     if (diff > 0 && currentChartMode === 'expense') {
-                        switchChartType('income'); // Свайп вліво -> перехід на Доходи
+                        switchChartType('income');
                     } else if (diff < 0 && currentChartMode === 'income') {
-                        switchChartType('expense'); // Свайп вправо -> перехід на Витрати
+                        switchChartType('expense');
                     }
                 }
             };
 
-            // Для сенсорних екранів (Телефони)
             container.addEventListener('touchstart', e => startX = e.changedTouches[0].screenX);
             container.addEventListener('touchend', e => { endX = e.changedTouches[0].screenX; handleSwipe(); });
 
-            // Для мишки (ПК)
             let isMouseDown = false;
             container.addEventListener('mousedown', e => { isMouseDown = true; startX = e.screenX; });
             container.addEventListener('mouseup', e => { if (!isMouseDown) return; endX = e.screenX; isMouseDown = false; handleSwipe(); });
             container.addEventListener('mouseleave', () => isMouseDown = false);
         }
 
-        // --- Робота з Chart.js (Аналітика) ---
         function renderChart(labels, dataArray, colorsArray) {
             const ctx = document.getElementById('expensesChart').getContext('2d');
             
-            if (myChart) myChart.destroy(); // Очищаємо старий графік при оновленні
+            if (myChart) myChart.destroy();
 
             myChart = new Chart(ctx, {
                 type: 'doughnut',
@@ -443,27 +404,26 @@
                         data: dataArray,
                         backgroundColor: colorsArray,
                         borderWidth: 0,
-                        hoverOffset: 15 // Збільшений відступ при наведенні для преміального ефекту
+                        hoverOffset: 15
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%', // Товщина кільця (виглядає сучасно)
+                    cutout: '75%',
                     plugins: {
                         legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'system-ui' } } }
                     },
                     animation: {
-                        duration: 2000, // Тривалість анімації (2 секунди)
-                        easing: 'easeOutExpo', // Плавне та швидке розгортання з дуже м'яким сповільненням у кінці
-                        animateScale: true, // Графік "виростає" з центру
-                        animateRotate: true // Графік розгортається по колу
+                        duration: 2000,
+                        easing: 'easeOutExpo',
+                        animateScale: true,
+                        animateRotate: true
                     }
                 }
             });
         }
 
-        // --- Відображення списку транзакцій ---
         function renderTransactions(transactions) {
             const list = document.getElementById('transactions-list');
             list.innerHTML = '';
@@ -478,7 +438,6 @@
                 const sign = isIncome ? '+' : '-';
                 const colorClass = isIncome ? 'income' : 'expense';
                 
-                // Визначаємо, чи це системна транзакція переказу (categoryId === 0)
                 const isTransfer = tx.categoryId === 0;
                 const displayIcon = isTransfer ? '⇄' : (tx.icon || (isIncome ? '💰' : '💸'));
                 const displayName = isTransfer ? (isIncome ? 'Отримано переказ' : 'Надіслано переказ') : tx.categoryName;
@@ -498,7 +457,6 @@
             });
         }
 
-        // --- Логіка Модального вікна ---
         function openModal(type) {
             currentTxType = type;
             document.getElementById('modal-title').innerText = type === 'income' ? 'Додати дохід' : 'Додати витрату';
@@ -537,14 +495,12 @@
             document.getElementById('transaction-modal').classList.remove('active');
         }
 
-        // --- Відправка транзакції на бекенд ---
         async function submitTransaction() {
             const amount = parseFloat(document.getElementById('tx-amount').value);
             const categoryId = parseInt(document.getElementById('tx-category-id').value);
             const isIncome = (currentTxType === 'income');
             const date = new Date().toISOString().split('T')[0];
             
-            // ID вибраного рахунку відправляємо на бекенд (він має це враховувати)
             const accountId = parseInt(document.getElementById('acc-select').value);
 
             if (isNaN(amount) || amount <= 0) {
@@ -567,18 +523,16 @@
 
                 if (response.ok) {
                     closeModal();
-                    initApp(); // Завантажуємо свіжі рахунки, щоб актуалізувати баланс
+                    initApp();
                 } else {
                     const err = await response.text();
                     alert("Помилка: " + err);
                 }
             } catch (error) {
-                console.error("Деталі мережевої помилки:", error);
                 alert("Помилка мережі: Перевірте з'єднання з сервером.");
             }
         }
 
-        // --- Логіка Модального вікна Переказів ---
         function openTransferModal() {
             const fromSelect = document.getElementById('transfer-from');
             const toSelect = document.getElementById('transfer-to');
@@ -623,14 +577,12 @@
 
                 if (response.ok) {
                     closeTransferModal();
-                    // Повне оновлення дашборду (баланси, графіки та історія)
                     initApp(); 
                 } else {
                     const err = await response.text();
                     alert("Помилка переказу: " + err);
                 }
             } catch (error) {
-                console.error("Деталі помилки:", error);
                 alert("Помилка мережі: Не вдалося виконати запит.");
             }
         }

@@ -6,7 +6,6 @@
     <title>Monefy - Авторизація</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Специфічні стилі для сторінки авторизації */
         .auth-container {
             width: 100%;
             max-width: 400px;
@@ -104,14 +103,12 @@
     <script>
         const API_BASE = 'http://localhost:8085/api';
 
-        // Обробка натискання Enter
         function handleKeyPress(event, action) {
             if (event.key === "Enter") {
                 authenticate(action);
             }
         }
 
-        // Перемикання вкладок
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
@@ -123,12 +120,10 @@
                 document.querySelectorAll('.tab')[1].classList.add('active');
                 document.getElementById('register-form').classList.add('active');
             }
-            // Очищаємо помилки при перемиканні
             document.getElementById('login-error').innerText = '';
             document.getElementById('reg-error').innerText = '';
         }
 
-        // Універсальна функція для Логіну та Реєстрації
         async function authenticate(action) {
             const isLogin = action === 'login';
             const prefix = isLogin ? 'login' : 'reg';
@@ -158,12 +153,10 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log("Дані від сервера:", data);
 
                     if (data.token && data.token !== "undefined") {
                         localStorage.setItem('token', data.token);
                         localStorage.setItem('username', data.username || username);
-                        console.log("Токен збережено, переходимо на головну...");
                         window.location.href = 'index.html';
                     } else {
                         console.error("Помилка: сервер надіслав пустий токен");

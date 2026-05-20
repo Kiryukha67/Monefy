@@ -13,7 +13,6 @@
     </script>
 
     <style>
-        /* --- Панель фільтрів (Sticky) --- */
         .filter-panel {
             position: sticky;
             top: 0;
@@ -51,7 +50,6 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
 
-        /* --- Основний контент (Список) --- */
         .content { 
             padding: 20px; 
             flex-grow: 1; 
@@ -60,7 +58,6 @@
             gap: 20px;
         }
 
-        /* Група транзакцій (за датою) */
         .tx-group {
             display: flex;
             flex-direction: column;
@@ -81,7 +78,6 @@
             padding: 0 16px;
         }
 
-        /* Елемент транзакції */
         .tx-item {
             display: flex;
             align-items: center;
@@ -112,7 +108,7 @@
         
         .tx-amount { font-weight: 700; font-size: 16px; }
         .tx-amount.income { color: var(--color-income); }
-        .tx-amount.expense { color: var(--text-main); } /* Витрати робимо нейтральними або червоними, за бажанням можна var(--color-expense) */
+        .tx-amount.expense { color: var(--text-main); }
 
         .tx-delete-btn {
             background: none;
@@ -126,7 +122,6 @@
         }
         .tx-delete-btn:hover { color: var(--color-expense); }
 
-        /* Стан "Немає даних" */
         .empty-state {
             text-align: center;
             color: var(--text-muted);
@@ -142,13 +137,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* ==========================================================
-           АДАПТАЦІЯ ДЛЯ ПК (Desktop Dashboard)
-           ========================================================== */
         @media (min-width: 800px) {
             .app-container {
                 max-width: none;
-                grid-template-columns: 90px 250px 1fr; /* Меню, Фільтри, Історія */
+                grid-template-columns: 90px 250px 1fr;
                 grid-template-rows: 80px 1fr;
             }
             .filter-panel {
@@ -170,11 +162,10 @@
                 max-height: calc(100vh - 160px);
             }
 
-            /* Hover-ефект для транзакцій на ПК */
             .tx-item, .tx-item:last-child {
                 transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
                 border-radius: 12px;
-                padding: 12px 16px; /* Уніфікуємо відступи для ПК */
+                padding: 12px 16px;
                 margin: 0 -16px;
             }
             .tx-item:hover {
@@ -192,14 +183,12 @@
 
     <div class="app-container">
         
-        <!-- Шапка -->
         <header class="header">
             <a href="index.html" class="back-btn">⬅ Назад</a>
             <div class="title">Історія операцій</div>
             <div class="spacer"></div>
         </header>
 
-        <!-- Панель фільтрів (Sticky) -->
         <div class="filter-panel">
             <select id="filter-period" class="filter-select" onchange="applyFilters()">
                 <option value="all">За весь час</option>
@@ -224,12 +213,9 @@
             </select>
         </div>
 
-        <!-- Список транзакцій -->
         <div class="content" id="transactions-container">
-            <!-- Згенерується через JS -->
         </div>
 
-        <!-- Нижня навігація -->
         <nav class="bottom-nav">
             <a href="index.html" class="nav-item">
                 <span class="nav-icon">🏠</span>
@@ -253,10 +239,8 @@
     <script>
         const API_BASE = 'http://localhost:8085/api';
         
-        // Глобальний масив для зберігання всіх транзакцій з бекенду
         let allTransactions = [];
 
-        // --- Глобальні функції: Валюта ---
         function formatCurrency(amountInUAH) {
             const currency = localStorage.getItem('currency') || 'UAH';
             let amount = amountInUAH;
@@ -268,7 +252,6 @@
             return amount.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + symbol;
         }
 
-        // --- Логіка форматування дати ---
         function formatDateLabel(dateObj) {
             const today = new Date();
             const yesterday = new Date(today);
@@ -277,11 +260,9 @@
             if (dateObj.toDateString() === today.toDateString()) return "Сьогодні";
             if (dateObj.toDateString() === yesterday.toDateString()) return "Вчора";
 
-            // Наприклад: "23 жовтня 2023"
             return dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // --- Рендер списку транзакцій ---
         function renderHistory(transactions) {
             const container = document.getElementById('transactions-container');
             container.innerHTML = '';
@@ -295,10 +276,8 @@
                 return;
             }
 
-            // Сортування за датою (від новіших до старіших)
             transactions.sort((a, b) => b.dateObj - a.dateObj);
 
-            // Групування за датою
             const grouped = {};
             transactions.forEach(tx => {
                 const label = formatDateLabel(tx.dateObj);
@@ -306,7 +285,6 @@
                 grouped[label].push(tx);
             });
 
-            // Генерація HTML
             for (const [dateLabel, txList] of Object.entries(grouped)) {
                 let itemsHtml = '';
                 
@@ -315,11 +293,9 @@
                     const sign = isIncome ? '+' : '-';
                     const amountClass = isIncome ? 'income' : 'expense';
                     
-                    // Якщо бекенд не віддає колір у транзакції, призначаємо дефолтний
                     const txColor = tx.color || (isIncome ? '#10b981' : '#ef4444');
-                    const iconBg = txColor + '33'; // Прозорість 20%
+                    const iconBg = txColor + '33';
 
-                    // Fallback для назви рахунку (якщо бекенд його поки не повертає у /api/transactions)
                     const accountName = tx.accountName || 'Основний рахунок';
 
                     itemsHtml += `
@@ -354,7 +330,6 @@
             }
         }
 
-        // --- Логіка Фільтрації ---
         function applyFilters() {
             const period = document.getElementById('filter-period').value;
             const account = document.getElementById('filter-account').value;
@@ -363,13 +338,10 @@
             const now = new Date();
 
             const filtered = allTransactions.filter(tx => {
-                // 1. Фільтр по рахунку (перевіряємо і по ID, і по Назві для гнучкості)
                 if (account !== 'all' && String(tx.accountId) !== account && tx.accountName !== account) return false;
                 
-                // 2. Фільтр по категорії 
                 if (category !== 'all' && String(tx.categoryId) !== category && tx.categoryName !== category) return false;
 
-                // 3. Фільтр по періоду
                 if (period !== 'all') {
                     const diffTime = Math.abs(now - tx.dateObj);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -385,7 +357,6 @@
             renderHistory(filtered);
         }
 
-        // --- Видалення Транзакції ---
         async function deleteTransaction(id) {
             if (!confirm("Ви впевнені, що хочете видалити цю транзакцію? Баланс рахунку буде відновлено.")) return;
 
@@ -395,7 +366,6 @@
                 });
 
                 if (response.ok) {
-                    // Миттєве оновлення UI (завантажує історію наново)
                     loadTransactions(); 
                 } else {
                     const errText = await response.text();
@@ -408,7 +378,6 @@
             }
         }
 
-        // --- Завантаження Фільтрів (Рахунки та Категорії) ---
         async function loadFilters() {
             try {
                 const [accRes, catRes] = await Promise.all([
@@ -421,7 +390,6 @@
                     const accSelect = document.getElementById('filter-account');
                     accSelect.innerHTML = '<option value="all">Всі рахунки</option>';
                     accounts.forEach(acc => {
-                        // Використовуємо назву рахунку як value (оскільки транзакції на бекенді поки не віддають accountId)
                         accSelect.innerHTML += `<option value="${acc.name}">${acc.name}</option>`;
                     });
                 }
@@ -431,7 +399,6 @@
                     const catSelect = document.getElementById('filter-category');
                     catSelect.innerHTML = '<option value="all">Всі категорії</option>';
                     categories.forEach(cat => {
-                        // Використовуємо назву категорії як value, бо C++ бекенд повертає tx["categoryName"]
                         catSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
                     });
                 }
@@ -440,7 +407,6 @@
             }
         }
 
-        // --- Завантаження Історії Транзакцій ---
         async function loadTransactions() {
             try {
                 const res = await fetch(`${API_BASE}/transactions`);
@@ -448,26 +414,21 @@
                 
                 const data = await res.json();
                 
-                // Зберігаємо в глобальний масив та парсимо дати в об'єкти Date
                 allTransactions = data.map(tx => {
                     let d = new Date(tx.date);
-                    if (isNaN(d.getTime())) d = new Date(); // Якщо дата некоректна, ставимо поточну
+                    if (isNaN(d.getTime())) d = new Date();
                     return { ...tx, dateObj: d };
                 });
 
-                // Відмальовуємо всі отримані транзакції
                 renderHistory(allTransactions);
 
             } catch (error) {
-                console.error("Помилка завантаження історії:", error);
                 document.getElementById('transactions-container').innerHTML = 
                     '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Не вдалося завантажити історію операцій</p>';
             }
         }
 
-        // --- Ініціалізація при завантаженні ---
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Завантажуємо фільтри і транзакції
             loadFilters();
             loadTransactions();
 
