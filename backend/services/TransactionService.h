@@ -21,17 +21,17 @@ private:
 
 public:
     // Видалення транзакції та відкат балансу
-    bool deleteTransaction(int id);
+    bool deleteTransaction(int id, int userId);
 
     // Головна функція додавання транзакції
-    bool addTransaction(double amount, bool isIncome, const char* date, int categoryId, int accountId);
+    bool addTransaction(double amount, bool isIncome, const char* date, int categoryId, int accountId, int userId);
     
     // Логіка переказу коштів між рахунками
-    bool transferFunds(int fromAccountId, int toAccountId, double amount, const char* date);
+    bool transferFunds(int fromAccountId, int toAccountId, double amount, const char* date, int userId);
     
     // Отримання аналітики (суми, згруповані по категоріях)
-    void getAnalytics(bool isIncome, CategoryTotal* outTotals, int& count, int maxCount);
+    void getAnalytics(bool isIncome, int userId, CategoryTotal* outTotals, int& count, int maxCount);
     
     // Отримання історії всіх транзакцій
-    void getTransactionHistory(Transaction* outList, int& count, int maxCount);
+    void getTransactionHistory(int userId, Transaction* outList, int& count, int maxCount);
 };

@@ -2,6 +2,7 @@
 
 struct Account {
     int id;
+    int userId;
     char name[64];
     double balance;
     int currencyId;

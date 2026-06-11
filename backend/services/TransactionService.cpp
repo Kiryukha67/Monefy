@@ -1,39 +1,36 @@
 #include "TransactionService.h"
-#include <cstring> // Для безпечного копіювання рядків (strncpy)
+#include <cstring>
 
-// Допоміжна функція: шукає найбільший ID у файлі і повертає наступний
 int TransactionService::generateNewTransactionId() {
-    Transaction transactions[100]; // Тимчасовий масив (без vector)
+    Transaction transactions[100];
     int count = 0;
     transactionStorage.getAllTransactions(transactions, count, 100);
-    
+
     int maxId = 0;
     for (int i = 0; i < count; ++i) {
         if (transactions[i].id > maxId) {
             maxId = transactions[i].id;
         }
     }
-    return maxId + 1; // Наступний вільний ID
+    return maxId + 1;
 }
 
-// Видалення транзакції та відкат балансу
-bool TransactionService::deleteTransaction(int id) {
+bool TransactionService::deleteTransaction(int id, int userId) {
     Transaction transactions[100];
     int count = 0;
     transactionStorage.getAllTransactions(transactions, count, 100);
 
     int targetIndex = -1;
     for (int i = 0; i < count; ++i) {
-        if (transactions[i].id == id) {
+        if (transactions[i].id == id && transactions[i].userId == userId) {
             targetIndex = i;
             break;
         }
     }
     if (targetIndex == -1) return false;
 
-    // Робимо відкат балансу рахунку
     Account acc;
-    if (accountStorage.getAccountById(transactions[targetIndex].accountId, acc)) {
+    if (accountStorage.getAccountById(transactions[targetIndex].accountId, acc) && acc.userId == userId) {
         if (transactions[targetIndex].isIncome) {
             acc.balance -= transactions[targetIndex].amount;
         } else {
@@ -42,23 +39,20 @@ bool TransactionService::deleteTransaction(int id) {
         accountStorage.updateAccount(acc);
     }
 
-    // Видаляємо саму транзакцію з файлу
     return transactionStorage.deleteTransaction(id);
 }
 
-// Переказ коштів між рахунками
-bool TransactionService::transferFunds(int fromAccountId, int toAccountId, double amount, const char* date) {
+bool TransactionService::transferFunds(int fromAccountId, int toAccountId, double amount, const char* date, int userId) {
     if (amount <= 0 || fromAccountId == toAccountId) return false;
 
     Account fromAcc, toAcc;
     if (!accountStorage.getAccountById(fromAccountId, fromAcc) ||
         !accountStorage.getAccountById(toAccountId, toAcc)) {
-        return false; // Один з рахунків не знайдено
+        return false;
     }
+    if (fromAcc.userId != userId || toAcc.userId != userId) return false;
+    if (fromAcc.balance < amount) return false;
 
-    if (fromAcc.balance < amount) return false; // Недостатньо коштів
-
-    // Оновлюємо баланси
     fromAcc.balance -= amount;
     toAcc.balance += amount;
 
@@ -66,111 +60,102 @@ bool TransactionService::transferFunds(int fromAccountId, int toAccountId, doubl
         return false;
     }
 
-    // Реєструємо витрату з першого рахунку (категорія 0 буде відображатися як "Інше")
-    Transaction txOut;
+    Transaction txOut = {};
     txOut.id = generateNewTransactionId();
+    txOut.userId = userId;
     txOut.amount = amount;
     txOut.isIncome = false;
-    txOut.categoryId = 0; 
+    txOut.categoryId = 0;
     txOut.accountId = fromAccountId;
     std::strncpy(txOut.date, date, sizeof(txOut.date) - 1);
+    txOut.date[sizeof(txOut.date) - 1] = '\0';
     transactionStorage.addTransaction(txOut);
 
-    // Реєструємо надходження на другий рахунок
-    Transaction txIn;
+    Transaction txIn = {};
     txIn.id = generateNewTransactionId();
+    txIn.userId = userId;
     txIn.amount = amount;
     txIn.isIncome = true;
     txIn.categoryId = 0;
     txIn.accountId = toAccountId;
     std::strncpy(txIn.date, date, sizeof(txIn.date) - 1);
+    txIn.date[sizeof(txIn.date) - 1] = '\0';
     transactionStorage.addTransaction(txIn);
 
     return true;
 }
 
-// Головна бізнес-логіка додавання транзакції
-bool TransactionService::addTransaction(double amount, bool isIncome, const char* date, int categoryId, int accountId) {
-    // 1. Валідація: сума має бути більшою за нуль
+bool TransactionService::addTransaction(double amount, bool isIncome, const char* date, int categoryId, int accountId, int userId) {
     if (amount <= 0) return false;
 
-    // 2. Перевіряємо, чи існує такий рахунок
     Account account;
-    if (!accountStorage.getAccountById(accountId, account)) {
-        return false; // Рахунок не знайдено
-    }
+    if (!accountStorage.getAccountById(accountId, account)) return false;
+    if (account.userId != userId) return false;
 
-    // 3. Перевіряємо, чи існує така категорія
     Category category;
-    if (!categoryStorage.getCategoryById(categoryId, category)) {
-        return false; // Категорія не знайдена
-    }
+    if (!categoryStorage.getCategoryById(categoryId, category)) return false;
+    if (category.userId != userId) return false;
 
-    // 4. Бізнес-логіка: якщо це витрата, перевіряємо чи є гроші на рахунку
-    if (!isIncome && account.balance < amount) {
-        return false; // Недостатньо коштів!
-    }
+    if (!isIncome && account.balance < amount) return false;
 
-    // 5. Оновлюємо баланс рахунку
     if (isIncome) {
         account.balance += amount;
     } else {
         account.balance -= amount;
     }
 
-    // Зберігаємо оновлений баланс у файл
-    if (!accountStorage.updateAccount(account)) {
-        return false; // Помилка запису рахунку
-    }
+    if (!accountStorage.updateAccount(account)) return false;
 
-    // 6. Формуємо саму транзакцію
-    Transaction tx;
+    Transaction tx = {};
     tx.id = generateNewTransactionId();
+    tx.userId = userId;
     tx.amount = amount;
     tx.isIncome = isIncome;
     tx.categoryId = categoryId;
     tx.accountId = accountId;
-    
-    // Безпечно копіюємо дату в масив char[]
     std::strncpy(tx.date, date, sizeof(tx.date) - 1);
-    tx.date[sizeof(tx.date) - 1] = '\0'; // Гарантуємо кінець рядка
+    tx.date[sizeof(tx.date) - 1] = '\0';
 
-    // 7. Зберігаємо транзакцію у файл
     transactionStorage.addTransaction(tx);
-
-    return true; // Успіх!
+    return true;
 }
 
-// Збирає суми по категоріях для діаграми
-void TransactionService::getAnalytics(bool isIncome, CategoryTotal* outTotals, int& count, int maxCount) {
+void TransactionService::getAnalytics(bool isIncome, int userId, CategoryTotal* outTotals, int& count, int maxCount) {
     count = 0;
     Transaction transactions[100];
     int txCount = 0;
-    
+
     transactionStorage.getAllTransactions(transactions, txCount, 100);
 
     for (int i = 0; i < txCount; ++i) {
-        if (transactions[i].isIncome == isIncome) {
-            
-            bool found = false;
-            for (int j = 0; j < count; ++j) {
-                if (outTotals[j].categoryId == transactions[i].categoryId) {
-                    outTotals[j].totalAmount += transactions[i].amount;
-                    found = true;
-                    break;
-                }
+        if (transactions[i].userId != userId || transactions[i].isIncome != isIncome) continue;
+
+        bool found = false;
+        for (int j = 0; j < count; ++j) {
+            if (outTotals[j].categoryId == transactions[i].categoryId) {
+                outTotals[j].totalAmount += transactions[i].amount;
+                found = true;
+                break;
             }
-            
-            if (!found && count < maxCount) {
-                outTotals[count].categoryId = transactions[i].categoryId;
-                outTotals[count].totalAmount = transactions[i].amount;
-                count++;
-            }
+        }
+
+        if (!found && count < maxCount) {
+            outTotals[count].categoryId = transactions[i].categoryId;
+            outTotals[count].totalAmount = transactions[i].amount;
+            count++;
         }
     }
 }
 
-// Повертає список усіх транзакцій
-void TransactionService::getTransactionHistory(Transaction* outList, int& count, int maxCount) {
-    transactionStorage.getAllTransactions(outList, count, maxCount);
+void TransactionService::getTransactionHistory(int userId, Transaction* outList, int& count, int maxCount) {
+    Transaction transactions[100];
+    int txCount = 0;
+    transactionStorage.getAllTransactions(transactions, txCount, 100);
+
+    count = 0;
+    for (int i = 0; i < txCount && count < maxCount; ++i) {
+        if (transactions[i].userId == userId) {
+            outList[count++] = transactions[i];
+        }
+    }
 }

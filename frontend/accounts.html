@@ -11,6 +11,7 @@
             window.location.replace('auth.html');
         }
     </script>
+    <script src="auth-api.js"></script>
 
     <style>
         .content { 
@@ -274,7 +275,7 @@
 
         async function fetchAccounts() {
             try {
-                const response = await fetch(`${API_BASE}/accounts`);
+                const response = await apiFetch(`${API_BASE}/accounts`);
                 if (!response.ok) throw new Error('Мережева помилка');
                 currentAccounts = await response.json();
                 renderAccounts();
@@ -289,6 +290,12 @@
             const container = document.getElementById('accounts-list');
             container.innerHTML = '';
             let totalBalanceUAH = 0;
+
+            if (currentAccounts.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">Немає рахунків</p>';
+                document.getElementById('total-balance').innerText = formatCurrency(0);
+                return;
+            }
 
             currentAccounts.forEach(acc => {
                 totalBalanceUAH += acc.balance;
@@ -361,7 +368,7 @@
             const reqMethod = editingAccountId !== null ? 'PUT' : 'POST';
 
             try {
-                const response = await fetch(`${API_BASE}/account`, {
+                const response = await apiFetch(`${API_BASE}/account`, {
                     method: reqMethod,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -386,7 +393,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/account/${id}`, {
+                const response = await apiFetch(`${API_BASE}/account/${id}`, {
                     method: 'DELETE'
                 });
 

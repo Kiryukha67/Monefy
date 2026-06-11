@@ -12,6 +12,7 @@
             window.location.replace('auth.html');
         }
     </script>
+    <script src="auth-api.js"></script>
     <link rel="stylesheet" href="style.css">
 
     <style>
@@ -280,7 +281,8 @@
         }
 
         function logout() {
-            localStorage.clear();
+            if (typeof clearSession === 'function') clearSession();
+            else localStorage.clear();
             window.location.href = 'auth.html';
         }
 
@@ -291,9 +293,11 @@
         async function initApp() {
             try {
                 updateUserProfileDisplay();
+                allAccounts = [];
+                allCategories = [];
                 const [accRes, catRes] = await Promise.all([
-                    fetch(`${API_BASE}/accounts`),
-                    fetch(`${API_BASE}/categories`)
+                    apiFetch(`${API_BASE}/accounts`),
+                    apiFetch(`${API_BASE}/categories`)
                 ]);
 
                 if (accRes.ok) allAccounts = await accRes.json();
@@ -301,9 +305,16 @@
 
                 const accSelect = document.getElementById('acc-select');
                 accSelect.innerHTML = '';
-                allAccounts.forEach(acc => {
-                    accSelect.innerHTML += `<option value="${acc.id}">${acc.icon} ${acc.name}</option>`;
-                });
+                if (allAccounts.length === 0) {
+                    accSelect.innerHTML = '<option value="">Немає рахунків</option>';
+                    accSelect.disabled = true;
+                    renderBalance(0);
+                } else {
+                    accSelect.disabled = false;
+                    allAccounts.forEach(acc => {
+                        accSelect.innerHTML += `<option value="${acc.id}">${acc.icon} ${acc.name}</option>`;
+                    });
+                }
 
                 fetchDataAndRender();
                 setupChartSwipe();
@@ -320,11 +331,13 @@
                 
                 if (selectedAcc) {
                     renderBalance(selectedAcc.balance);
+                } else {
+                    renderBalance(0);
                 }
                 
                 await switchChartType(currentChartMode);
 
-                const resTx = await fetch(`${API_BASE}/transactions`);
+                const resTx = await apiFetch(`${API_BASE}/transactions`);
                 if (resTx.ok) {
                     const txData = await resTx.json();
                     renderTransactions(txData);
@@ -353,7 +366,7 @@
             }
 
             try {
-                const resAnalytics = await fetch(`${API_BASE}/analytics?type=${type}`);
+                const resAnalytics = await apiFetch(`${API_BASE}/analytics?type=${type}`);
                 if (resAnalytics.ok) {
                     const analyticsData = await resAnalytics.json();
                     if (analyticsData.labels.length === 0) {
@@ -478,6 +491,11 @@
             const isIncomeTarget = (type === 'income');
             const filtered = allCategories.filter(cat => cat.isIncome === isIncomeTarget);
 
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="cat-empty">Немає категорій</div>';
+                return;
+            }
+
             filtered.forEach(cat => {
                 const btn = document.createElement('div');
                 btn.className = 'cat-btn';
@@ -512,10 +530,15 @@
                 return;
             }
 
+            if (isNaN(accountId)) {
+                alert("Спочатку створіть рахунок.");
+                return;
+            }
+
             const payload = { amount, isIncome, categoryId, accountId, date };
 
             try {
-                const response = await fetch(`${API_BASE}/transaction`, {
+                const response = await apiFetch(`${API_BASE}/transaction`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -534,6 +557,10 @@
         }
 
         function openTransferModal() {
+            if (allAccounts.length < 2) {
+                alert("Для переказу потрібно щонайменше два рахунки.");
+                return;
+            }
             const fromSelect = document.getElementById('transfer-from');
             const toSelect = document.getElementById('transfer-to');
             fromSelect.innerHTML = '';
@@ -569,7 +596,7 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE}/transfer`, {
+                const response = await apiFetch(`${API_BASE}/transfer`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ fromAccountId, toAccountId, amount, date })

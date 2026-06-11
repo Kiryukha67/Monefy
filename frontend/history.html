@@ -11,6 +11,7 @@
             window.location.replace('auth.html');
         }
     </script>
+    <script src="auth-api.js"></script>
 
     <style>
         .filter-panel {
@@ -361,7 +362,7 @@
             if (!confirm("Ви впевнені, що хочете видалити цю транзакцію? Баланс рахунку буде відновлено.")) return;
 
             try {
-                const response = await fetch(`${API_BASE}/transaction/${id}`, {
+                const response = await apiFetch(`${API_BASE}/transaction/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -381,8 +382,8 @@
         async function loadFilters() {
             try {
                 const [accRes, catRes] = await Promise.all([
-                    fetch(`${API_BASE}/accounts`),
-                    fetch(`${API_BASE}/categories`)
+                    apiFetch(`${API_BASE}/accounts`),
+                    apiFetch(`${API_BASE}/categories`)
                 ]);
 
                 if (accRes.ok) {
@@ -409,7 +410,7 @@
 
         async function loadTransactions() {
             try {
-                const res = await fetch(`${API_BASE}/transactions`);
+                const res = await apiFetch(`${API_BASE}/transactions`);
                 if (!res.ok) throw new Error("Помилка сервера");
                 
                 const data = await res.json();

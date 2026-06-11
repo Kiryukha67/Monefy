@@ -3,7 +3,7 @@
 
 class CategoryStorage {
 private:
-    const char* filename = "categories.dat";
+    const char* filename = "categories_v2.dat";
 public:
     void addCategory(const Category& category);
     bool getCategoryById(int id, Category& outCategory);

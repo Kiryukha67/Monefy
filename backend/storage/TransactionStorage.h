@@ -3,7 +3,7 @@
 
 class TransactionStorage {
 private:
-    const char* filename = "transactions.dat";
+    const char* filename = "transactions_v2.dat";
 public:
     void addTransaction(const Transaction& transaction);
     bool getTransactionById(int id, Transaction& outTransaction);

@@ -3,7 +3,7 @@
 
 class AccountStorage {
 private:
-    const char* filename = "accounts.dat";
+    const char* filename = "accounts_v2.dat";
 public:
     void addAccount(const Account& account);
     bool getAccountById(int id, Account& outAccount);

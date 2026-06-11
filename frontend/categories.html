@@ -11,64 +11,88 @@
             window.location.replace('auth.html');
         }
     </script>
+    <script src="auth-api.js"></script>
 
     <style>
-        .content { 
-            padding: 24px 20px; 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 16px;
-            padding-bottom: 100px;
+        .content {
+            padding: 16px;
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            align-content: start;
+            padding-bottom: 96px;
         }
 
         .category-card {
             background-color: var(--bg-card);
-            border-radius: var(--radius-main);
-            padding: 20px;
-            box-shadow: var(--shadow-card);
+            border-radius: 14px;
+            padding: 10px;
+            min-height: 104px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .category-card:hover {
+            transform: translateY(-2px);
+            border-color: #bfdbfe;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
         }
         .cat-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+            gap: 8px;
+            height: 100%;
         }
         .cat-info {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 16px;
+            justify-content: center;
+            gap: 6px;
+            min-width: 0;
         }
         .cat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 24px;
         }
         .cat-name {
-            font-size: 16px;
-            font-weight: 700;
+            width: 100%;
+            font-size: 13px;
+            line-height: 1.25;
+            font-weight: 650;
+            text-align: center;
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .cat-actions {
             display: flex;
-            gap: 8px;
+            justify-content: center;
+            gap: 6px;
         }
         .action-btn {
             background: #f8fafc;
             border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            border-radius: 9px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 16px;
+            font-size: 13px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.18s ease, transform 0.18s ease;
         }
-        .action-btn:hover { background: #e2e8f0; }
+        .action-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
 
         .budget-block { margin-top: 16px; }
         .progress-bg {
@@ -95,26 +119,49 @@
 
         .emoji-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
         }
         .emoji-item {
             aspect-ratio: 1;
             display: flex; justify-content: center; align-items: center;
-            font-size: 24px; background: #f1f5f9; border-radius: 12px;
-            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+            font-size: 24px; background: #f1f5f9; border-radius: 14px;
+            cursor: pointer; border: 2px solid transparent; transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
         }
-        .emoji-item.active { background: #eff6ff; border-color: var(--color-primary); transform: scale(1.05); }
+        .emoji-item:hover { transform: translateY(-1px); }
+        .emoji-item.active { background: #eff6ff; border-color: var(--color-primary); }
 
         .color-grid {
-            display: flex; gap: 12px; flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(6, 30px);
+            gap: 8px;
+            align-items: center;
         }
         .color-item {
-            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
             border: 2px solid transparent; outline: 2px solid transparent; outline-offset: 2px;
-            transition: transform 0.2s;
+            transition: transform 0.18s ease, outline-color 0.18s ease;
         }
-        .color-item.active { outline-color: var(--color-primary); transform: scale(1.1); }
+        .color-item.active { outline-color: var(--color-primary); transform: scale(1.05); }
+
+        #category-modal .modal-content {
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 18px 18px 82px;
+        }
+
+        #category-modal .modal-header { margin-bottom: 14px; }
+        #category-modal .form-group { margin-bottom: 12px; }
+        #category-modal .form-control { padding: 11px 12px; font-size: 15px; border-radius: 11px; }
+        #category-modal .btn-primary {
+            position: sticky;
+            bottom: 0;
+            height: 48px;
+            padding: 0 16px;
+            margin: 10px -2px 0;
+            border-radius: 14px;
+            box-shadow: 0 -10px 24px rgba(255, 255, 255, 0.9), 0 8px 18px rgba(59, 130, 246, 0.22);
+        }
 
     
         @media (min-width: 800px) {
@@ -125,14 +172,23 @@
             }
             #categories-container {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+                gap: 12px;
                 align-content: start;
             }
 
             .content {
                 overflow-y: auto;
                 max-height: calc(100vh - 160px);
+                padding: 18px;
+            }
+
+            .category-card { min-height: 116px; }
+        }
+
+        @media (min-width: 1100px) {
+            #categories-container {
+                grid-template-columns: repeat(6, minmax(120px, 150px));
             }
         }
     </style>
@@ -230,7 +286,7 @@
 
         async function fetchCategories() {
             try {
-                const response = await fetch(`${API_BASE}/categories`);
+                const response = await apiFetch(`${API_BASE}/categories`);
                 if (!response.ok) throw new Error('Мережева помилка');
                 currentCategories = await response.json();
                 renderCategories();
@@ -244,6 +300,11 @@
         function renderCategories() {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
+
+            if (currentCategories.length === 0) {
+                container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:24px;">Немає категорій</p>';
+                return;
+            }
 
             currentCategories.forEach(cat => {
                 const iconBg = cat.color + '33';
@@ -322,7 +383,7 @@
             if (!confirm("Ви впевнені, що хочете видалити цю категорію?")) return;
 
             try {
-                const response = await fetch(`${API_BASE}/category/${id}`, {
+                const response = await apiFetch(`${API_BASE}/category/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -365,7 +426,7 @@
             const reqMethod = editingCategoryId !== null ? 'PUT' : 'POST';
 
             try {
-                const response = await fetch(`${API_BASE}/category`, {
+                const response = await apiFetch(`${API_BASE}/category`, {
                     method: reqMethod,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
