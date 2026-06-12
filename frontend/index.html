@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -109,21 +109,6 @@
                 overflow-y: auto; /* Додаємо внутрішній скрол для історії */
             }
 
-            /* Hover-ефект для транзакцій на ПК */
-            .transaction-item, .transaction-item:last-child {
-                transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-                border-radius: 12px;
-                padding: 12px 16px; /* Додаємо відступи для ефекту картки */
-                margin: 0 -16px;    /* Компенсуємо відступи, щоб не ламати сітку */
-            }
-            .transaction-item:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.1), 0 6px 8px -6px rgba(0, 0, 0, 0.1);
-                background-color: var(--bg-card);
-                border-bottom-color: transparent; /* Ховаємо лінію розділювача */
-                z-index: 2;
-                position: relative;
-            }
         }
     </style>
 </head>

@@ -176,107 +176,84 @@ body {
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 }
 
-/* --- Стили Категорий (Touch-friendly & Modern) --- */
+/* --- Оновлені стилі категорій (Компактні, сучасні, професійні) --- */
 .categories-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
     gap: 16px;
-    padding: 10px 0;
+    padding: 12px 0;
 }
 
 .category-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 16px 10px;
+    padding: 18px 10px;
     background: var(--bg-card);
-    border-radius: 20px;
+    border-radius: 14px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid transparent;
-    box-shadow: var(--shadow-card);
+    border: 1.5px solid transparent;
     user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.category-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
-    border-color: var(--color-primary);
-}
-
-.category-item:active {
-    transform: scale(0.92);
-}
+.category-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #e2e8f0; }
+.category-item:active { transform: scale(0.95); }
 
 .category-icon {
-    font-size: 28px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
+    font-size: 32px;
+    margin-bottom: 10px;
 }
 
 .category-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-main);
+    text-align: center;
+    line-height: 1.2;
 }
 
 /* --- Grid Selector inside Modal --- */
 .category-selector-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 6px;
     max-height: 260px;
     overflow-y: auto;
-    padding: 6px 2px;
-    margin-top: 8px;
+    padding: 4px 2px;
 }
 
 .cat-btn {
-    background: #f8fafc;
-    border: 2px solid transparent;
-    border-radius: 14px;
-    aspect-ratio: 1 / 1;
-    padding: 8px 5px;
+    background: var(--bg-app);
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    padding: 8px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     cursor: pointer;
-    transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
-    text-align: center;
-    user-select: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.cat-btn:hover {
-    transform: translateY(-2px);
-    background: #fff;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
-}
-
-.cat-btn:active { transform: scale(0.95); }
+.cat-btn:hover { background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
 .cat-btn.active {
-    background: #eff6ff;
+    background: #fff;
     border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
-.cat-btn-emoji { font-size: 24px; line-height: 1; margin-bottom: 5px; }
+.cat-btn-emoji { font-size: 20px; margin-bottom: 4px; }
 .cat-btn-name {
-    width: 100%;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 500;
     color: var(--text-muted);
-    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    width: 100%;
 }
 .cat-btn.active .cat-btn-name { color: var(--color-primary); }
 

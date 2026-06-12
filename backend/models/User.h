@@ -7,7 +7,6 @@ struct User {
     char email[100];
     char passwordHash[128];
 
-    // Безпечна ініціалізація нулями
     User() : id(0) {
         std::memset(name, 0, sizeof(name));
         std::memset(email, 0, sizeof(email));

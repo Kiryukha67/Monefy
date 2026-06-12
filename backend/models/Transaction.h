@@ -5,7 +5,7 @@ struct Transaction {
     int userId;
     double amount;
     bool isIncome; 
-    char date[20]; // формат "DD-MM-YYYY"
+    char date[20];
     int categoryId;
     int accountId;
 };
